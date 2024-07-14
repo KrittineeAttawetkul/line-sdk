@@ -6,6 +6,7 @@ var LINE_SDK = function(user) {
 const { Client } = require('@line/bot-sdk');
 const lingConfig = require('../../configs/lineConfig');
 const client = new Client(lingConfig);
+const richmenu = require('../../configs/richmenu');
 
 let response = {};
 
@@ -26,9 +27,9 @@ LINE_SDK.Webhook = function()
             const isMember = checkIfMember(profile);
       
             if (isMember) {
-              await client.linkRichMenuToUser(userId, 'RICH_MENU_ID_FOR_MEMBERS');
+              await client.linkRichMenuToUser(userId, richmenu.main);
             } else {
-              await client.linkRichMenuToUser(userId, 'RICH_MENU_ID_FOR_NON_MEMBERS');
+              await client.linkRichMenuToUser(userId, richmenu.login);
             }
           }
         });
