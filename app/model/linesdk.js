@@ -16,6 +16,12 @@ LINE_SDK.Webhook = function()
         const events = req.body.events;
 
         events.forEach(async (event) => {
+          // Reply with the event JSON
+          await client.replyMessage(event.replyToken, {
+            type: 'text',
+            text: `Event JSON: ${JSON.stringify(event, null, 2)}`
+          });
+
           if (event.type === 'follow' || event.type === 'memberJoined') {
             const userId = event.source.userId;
             console.log('Follow | Member Joined (Event)');
