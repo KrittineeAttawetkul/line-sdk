@@ -1,6 +1,6 @@
 "use strict";
 const { middleware } = require('@line/bot-sdk');
-const lineConfig = require('../configs/lineConfig');
+const lineConfig = require('../../configs/lineConfig');
 
 module.exports = function(app){
   var test = require("../controller/test");
