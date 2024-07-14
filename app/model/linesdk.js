@@ -1,52 +1,53 @@
 'use strict';
+
+const { Client } = require('@line/bot-sdk');
+const lineConfig = require('../../configs/lineConfig');
+const client = new Client(lineConfig);
+const richmenu = require('../../configs/richmenu');
+
 var LINE_SDK = function(user) {
     this.created_at = new Date();
 };
 
-const { Client } = require('@line/bot-sdk');
-const lingConfig = require('../../configs/lineConfig');
-const client = new Client(lingConfig);
-const richmenu = require('../../configs/richmenu');
+LINE_SDK.Webhook = function(req) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const events = req.body.events;
 
-let response = {};
+            for (const event of events) {
+                // Reply with the event JSON
+                await client.replyMessage(event.replyToken, {
+                    type: 'text',
+                    text: `Event JSON: ${JSON.stringify(event, null, 2)}`
+                });
 
-LINE_SDK.Webhook = function()
-{
-    return new Promise(async resolve => {
-        const events = req.body.events;
+                if (event.type === 'follow' || event.type === 'memberJoined') {
+                    const userId = event.source.userId;
+                    console.log('Follow | Member Joined (Event)');
+                    console.log('UserId: ', userId);
 
-        events.forEach(async (event) => {
-          // Reply with the event JSON
-          await client.replyMessage(event.replyToken, {
-            type: 'text',
-            text: `Event JSON: ${JSON.stringify(event, null, 2)}`
-          });
+                    // Check if the user is already a member
+                    const profile = await client.getProfile(userId);
+                    console.log('Profile Info: ', profile);
+                    const isMember = checkIfMember(profile);
 
-          if (event.type === 'follow' || event.type === 'memberJoined') {
-            const userId = event.source.userId;
-            console.log('Follow | Member Joined (Event)');
-            console.log('UserId: ', userId);
-      
-            // Check if the user is already a member
-            const profile = await client.getProfile(userId);
-            console.log('Profile Info: ', profile);
-            const isMember = checkIfMember(profile);
-      
-            if (isMember) {
-              await client.linkRichMenuToUser(userId, richmenu.main);
-            } else {
-              await client.linkRichMenuToUser(userId, richmenu.login);
+                    if (isMember) {
+                        await client.linkRichMenuToUser(userId, richmenu.main);
+                    } else {
+                        await client.linkRichMenuToUser(userId, richmenu.login);
+                    }
+                }
             }
-          }
-        });
 
-        resolve();
-    })
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 
 function checkIfMember(profile) {
-    return true;
+  return true;
 }
-
 
 module.exports = LINE_SDK;
