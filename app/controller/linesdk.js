@@ -5,8 +5,9 @@ const LineSDK = require('../model/linesdk');
 exports.Webhook = async function(req, res) {
     try {
         await LineSDK.Webhook(req);
-        res.status(200).send();
+        res.sendStatus(200);
     } catch (error) {
-        res.status(500).send();
+        console.error("Error processing webhook:", error);
+        res.sendStatus(500);
     }
 }
