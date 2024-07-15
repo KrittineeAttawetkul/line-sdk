@@ -8,7 +8,7 @@ var Test = function(user) {
 Test.testAPI = function(){
     return new Promise(async resolve => {
         response["status"] = true;
-        response["msg"] = 'API Version (1.10)';
+        response["msg"] = 'API Version (1.12)';
         resolve(response);
     })
 }
