@@ -1,0 +1,292 @@
+{
+	"info": {
+		"_postman_id": "b38cf054-2a47-429b-a5c9-7bede15a1b39",
+		"name": "LINE APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18378604",
+		"_collection_link": "https://nilecon-th.postman.co/workspace/AFTER-YOU~bb4cf25e-3667-4f67-b193-e75460618f16/collection/18378604-b38cf054-2a47-429b-a5c9-7bede15a1b39?action=share&source=collection_link&creator=18378604"
+	},
+	"item": [
+		{
+			"name": "Create Richmenu",
+			"item": [
+				{
+					"name": "Upload Image Rich Menu",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "/Users/nilecon/Downloads/richmenu-hr-test/member.png"
+							}
+						},
+						"url": {
+							"raw": "https://api-data.line.me/v2/bot/richmenu/:RICHMENU_ID/content",
+							"protocol": "https",
+							"host": [
+								"api-data",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"richmenu",
+								":RICHMENU_ID",
+								"content"
+							],
+							"variable": [
+								{
+									"key": "RICHMENU_ID",
+									"value": "richmenu-6b510916964f06e215f6ef6642998566"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Rich Menu",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"size\": {\n    \"width\": 2500,\n    \"height\": 1686\n  },\n  \"selected\": false,\n  \"name\": \"membership\",\n  \"chatBarText\": \"Tap here\",\n  \"areas\": [\n    {\n      \"bounds\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 1250,\n        \"height\": 1686\n      },\n      \"action\": {\n        \"type\": \"message\",\n        \"text\": \"โปรไฟล์\"\n      }\n    },\n    {\n      \"bounds\": {\n        \"x\": 1250,\n        \"y\": 0,\n        \"width\": 1250,\n        \"height\": 1686\n      },\n      \"action\": {\n        \"type\": \"message\",\n        \"text\": \"รีวอร์ด\"\n      }\n    }\n  ]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.line.me/v2/bot/richmenu",
+							"protocol": "https",
+							"host": [
+								"api",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"richmenu"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create Rich Menu",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"size\": {\n    \"width\": 2500,\n    \"height\": 1686\n  },\n  \"selected\": false,\n  \"name\": \"Nice richmenu\",\n  \"chatBarText\": \"Tap here\",\n  \"areas\": [\n    {\n      \"bounds\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 1250,\n        \"height\": 843\n      },\n      \"action\": {\n        \"type\": \"postback\",\n        \"data\": \"action=buy&itemid=123\"\n      }\n    },\n    {\n      \"bounds\": {\n        \"x\": 1250,\n        \"y\": 0,\n        \"width\": 1250,\n        \"height\": 843\n      },\n      \"action\": {\n        \"type\": \"message\",\n        \"text\": \"Hello\"\n      }\n    }\n  ]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.line.me/v2/bot/richmenu",
+									"protocol": "https",
+									"host": [
+										"api",
+										"line",
+										"me"
+									],
+									"path": [
+										"v2",
+										"bot",
+										"richmenu"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"richMenuId\": \"richmenu-4cc21596ddc88c71416b4d882e8320b7\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Set Richmenu",
+			"item": [
+				{
+					"name": "Default All Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.line.me/v2/bot/user/all/richmenu/:RICHMENU_ID",
+							"protocol": "https",
+							"host": [
+								"api",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"user",
+								"all",
+								"richmenu",
+								":RICHMENU_ID"
+							],
+							"variable": [
+								{
+									"key": "RICHMENU_ID",
+									"value": "richmenu-9133ce5e332d3a83961e9b0f36f7b236"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Rich Menu Image",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api-data.line.me/v2/bot/richmenu/:RICHMENU_ID/content",
+							"protocol": "https",
+							"host": [
+								"api-data",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"richmenu",
+								":RICHMENU_ID",
+								"content"
+							],
+							"variable": [
+								{
+									"key": "RICHMENU_ID",
+									"value": "richmenu-9133ce5e332d3a83961e9b0f36f7b236"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Rich Menu to a User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.line.me/v2/bot/user/:USER_ID/richmenu/:RICHMENU_ID",
+							"protocol": "https",
+							"host": [
+								"api",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"user",
+								":USER_ID",
+								"richmenu",
+								":RICHMENU_ID"
+							],
+							"variable": [
+								{
+									"key": "USER_ID",
+									"value": "Ua703643a54d362e977a955ec0a331146"
+								},
+								{
+									"key": "RICHMENU_ID",
+									"value": "richmenu-9133ce5e332d3a83961e9b0f36f7b236"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Default All Users",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 6TRgagsEyqwUn3NmtIP0ns2gupRS3kazYx/Ct72oVUfMPvbpP9kc8tJQJjS9LHVmu96gUNfeVLaTFU5FjUjjUv1u07yjd8JFDhX7LFeoJ8p5KVsUvI9buMViGzfygZB2qq4dKN+1o8Jbh1lbKTiPwQdB04t89/1O/w1cDnyilFU=",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.line.me/v2/bot/user/all/richmenu",
+							"protocol": "https",
+							"host": [
+								"api",
+								"line",
+								"me"
+							],
+							"path": [
+								"v2",
+								"bot",
+								"user",
+								"all",
+								"richmenu"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
