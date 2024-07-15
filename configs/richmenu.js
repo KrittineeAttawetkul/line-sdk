@@ -1,6 +1,6 @@
 let richmenu = {
-    login: 'richmenu-3583ac09845ab1090eae294cc0c000b4',
-    main: 'richmenu-2e83426f26a026b1e1d1003b04f4dbee'
+    login: 'richmenu-f7b658d288e598ea9badadf198d754bd',
+    main: 'richmenu-6fd62929104bdbf33e61abb9dacec433'
 }
 
 module.exports = richmenu;
