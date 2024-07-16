@@ -16,11 +16,11 @@ GenQr.Register = function (inputBody) {
             errMsg: ''
         };
 
-        let data ={
-            user_id:inputBody.userId,
-            display_name:inputBody.displayName,
-            picture_url:inputBody.pictureUrl,
-            status_message:inputBody.statusMessage
+        let data = {
+            user_id: inputBody.userId,
+            display_name: inputBody.displayName,
+            picture_url: inputBody.pictureUrl,
+            status_message: inputBody.statusMessage
         }
 
         let fileName = `qrcode_${data.user_id}.png`
@@ -32,26 +32,38 @@ GenQr.Register = function (inputBody) {
                 let qrURL = { qr_url: '/images/' + fileName }
                 Object.assign(data, qrURL)
 
-                let q = 'INSERT INTO lineprofile SET ?';
-                sql.query(q, [data], (err, results) => {
-                    if (!err) {
-                        if (results.affectedRows > 0) {
-                            resolve(response);
-                        } else {
-                            // is not effective
-                            response.status = false;
-                            response.errMsg = 'บันทึกไม่สำเร็จ'
-                            resolve(response);
-                        }
-                        //console.log('results: ', results);
-                    } else {
-                        //console.log('----------------- Register ------------------');
-                        //console.log('Error: ', err);
-                        response["status"] = false;
-                        response.errMsg = err;
+                let check = "SELECT * FROM lineprofile WHERE user_id = ?"
+                let insert = 'INSERT INTO lineprofile SET ?';
+
+                sql.query(check, [data.user_id], (err, results) => {
+                    if (err) {
                         reject(response);
+                    } else if (results.length > 0) {
+                        console.log('User already exists')
+                        resolve(response);
                     }
-                });
+                    else {
+                        sql.query(insert, [data], (err, results) => {
+                            if (!err) {
+                                if (results.affectedRows > 0) {
+                                    resolve(response);
+                                } else {
+                                    // is not effective
+                                    response.status = false;
+                                    response.errMsg = 'บันทึกไม่สำเร็จ'
+                                    resolve(response);
+                                }
+                                //console.log('results: ', results);
+                            } else {
+                                //console.log('----------------- Register ------------------');
+                                //console.log('Error: ', err);
+                                response["status"] = false;
+                                response.errMsg = err;
+                                reject(response);
+                            }
+                        });
+                    }
+                })
             })
             .catch(err => {
                 reject(err);
