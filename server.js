@@ -15,20 +15,36 @@ app.use((req, res, next) => {
     })
     next();
 })
-    
+
 const port = 3000;
 
 app.use(fileUpload());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'))
 app.use(cors());
 
 app.listen(port); // local
 // https.createServer(SSL_OPTION, app).listen(port); // prod
-console.log(`Server running at ${port}`);
+//console.log(`Server running at ${port}`);
 
 var routes = require("./app/routes/route");
-routes(app);
 
+
+
+app.use(express.json())
+const sql = require('./configs/db');
+
+sql.connect((err) => {
+    if (err) {
+        //console.log('Error connecting to MySQL database = ', err)
+        return;
+    }
+    //console.log('MySQL successfully connected ')
+})
+
+// const PORT = 6000
+// app.listen(PORT, () => //console.log(`Server is running on port ${PORT}`))
+
+routes(app);
 module.exports = app;

@@ -14,7 +14,7 @@ LINE_SDK.Webhook = function (req) {
   return new Promise(async (resolve, reject) => {
     try {
       const events = req.body.events;
-      console.log('events: ', events)
+      //console.log('events: ', events)
 
       if (!events) {
         console.error("No events found in the request body.");
@@ -24,8 +24,8 @@ LINE_SDK.Webhook = function (req) {
       for (const event of events) {
         const userId = event.source.userId;
         const profile = await client.getProfile(userId);
-        console.log("Processing event:", event);
-        console.log(profile)
+        //console.log("Processing event:", event);
+        //console.log(profile)
 
         // type follow | member joined
         // if (event.type === 'follow' || event.type === 'memberJoined') {
@@ -49,7 +49,7 @@ const message_trigger = async function (event) {
   if (event.type === 'message') {
     let text = event.message.text;
     if (text === 'สมัครสมาชิก') {
-      await Register.Registration(event, client)
+      await Register.Registration(event, client) 
     }
   }
 }
