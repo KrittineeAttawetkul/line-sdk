@@ -28,14 +28,13 @@ Register.Registration = function (event, client) {
             }
         ];
 
-        let preMessageRes = await client.replyMessage(replyToken, preMessage)
-        console.log("preMessageRes: ", preMessageRes);
-
+        // let preMessageRes = await client.replyMessage(replyToken, preMessage)
+        // console.log("preMessageRes: ", preMessageRes);
+        await client.replyMessage(replyToken, preMessage)
         //<----------- API DATA BASE สร้าง model ใหม่
-
         await GenQr.Register(profile)
 
-        // //console.log("replyToken: ", replyToken)
+        //console.log("replyToken: ", replyToken)
         client.pushMessage(userId,proMessage)
         client.linkRichMenuToUser(userId, richmenu.main);
     })

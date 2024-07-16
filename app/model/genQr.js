@@ -19,7 +19,8 @@ GenQr.Register = function (inputBody) {
         let data ={
             user_id:inputBody.userId,
             display_name:inputBody.displayName,
-            picture_url:inputBody.pictureUrl
+            picture_url:inputBody.pictureUrl,
+            status_message:inputBody.statusMessage
         }
 
         let fileName = `qrcode_${data.user_id}.png`
