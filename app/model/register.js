@@ -21,7 +21,6 @@ Register.Registration = function (event, client) {
         ];
 
         client.replyMessage(replyToken, messages)
-        console.log(profile)
         
         //<----------- API DATA BASE สร้าง model ใหม่
 
