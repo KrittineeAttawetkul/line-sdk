@@ -26,7 +26,7 @@ app.use(cors());
 
 app.listen(port); // local
 // https.createServer(SSL_OPTION, app).listen(port); // prod
-//console.log(`Server running at ${port}`);
+console.log(`Server running at ${port}`);
 
 var routes = require("./app/routes/route");
 
@@ -40,7 +40,7 @@ sql.connect((err) => {
         //console.log('Error connecting to MySQL database = ', err)
         return;
     }
-    //console.log('MySQL successfully connected ')
+    console.log('MySQL successfully connected ')
 })
 
 // const PORT = 6000
