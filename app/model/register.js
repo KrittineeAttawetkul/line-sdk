@@ -35,8 +35,9 @@ Register.Registration = function (event, client) {
         await GenQr.Register(profile)
 
         //console.log("replyToken: ", replyToken)
-        client.pushMessage(userId,proMessage)
-        client.linkRichMenuToUser(userId, richmenu.main);
+        await client.pushMessage(userId,proMessage)
+        await client.linkRichMenuToUser(userId, richmenu.main);
+        resolve();
     })
 }
 
