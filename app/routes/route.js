@@ -10,5 +10,6 @@ module.exports = function(app){
 
   app.route("/api/test").get(test.Test);
   app.route("/webhook").post(lineSdk.Webhook);
-  app.route("/api/users/:user_id").get(Users.getUserByUserId);
+  // app.route("/api/users/:user_id").get(Users.getUserByUserId);
+  app.route("/api/users/:user_id").post(Users.getUserByUserId);
 }

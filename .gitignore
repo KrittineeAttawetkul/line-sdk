@@ -99,3 +99,4 @@ localstack/
 
 # Windows
 Thumbs.db
+.vercel

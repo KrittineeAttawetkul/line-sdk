@@ -1,7 +1,7 @@
 const Users = require('../model/users');
 
 exports.getUserByUserId = async function (req, res) {
-    const user_id = req.params.user_id
+    const user_id = req.body.user_id
     try {
         await Users.getUserByUserId(user_id)
             .then((response) => {
