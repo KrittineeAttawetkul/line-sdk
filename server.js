@@ -3,7 +3,7 @@ const express = require("express"),
     bodyParser = require("body-parser");
 const https = require('https');
 const fs = require('fs');
-// const {SSL_OPTION} = require('./utils/tsl')
+const {SSL_OPTION} = require('./utils/tsl')
 var cors = require('cors');
 const fileUpload = require('express-fileupload');
 
@@ -24,8 +24,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'))
 app.use(cors());
 
-app.listen(port); // local
-// https.createServer(SSL_OPTION, app).listen(port); // prod
+// app.listen(port); // local
+https.createServer(SSL_OPTION, app).listen(port); // prod
 console.log(`Server running at ${port}`);
 
 var routes = require("./app/routes/route");
