@@ -1,4 +1,5 @@
 'use strict';
+const lineConfig = require('../../configs/lineConfig')
 let response = {};
 const richmenu = require('../../configs/richmenu');
 
@@ -31,15 +32,36 @@ Register.Registration = function (event, client) {
         // let preMessageRes = await client.replyMessage(replyToken, preMessage)
         // console.log("preMessageRes: ", preMessageRes);
         await client.replyMessage(replyToken, preMessage)
+        // await loading(userId);
         //<----------- API DATA BASE สร้าง model ใหม่
         await GenQr.Register(profile)
 
         //console.log("replyToken: ", replyToken)
-        await client.pushMessage(userId,proMessage)
+        await client.pushMessage(userId, proMessage)
         await client.linkRichMenuToUser(userId, richmenu.main);
         resolve();
     })
 }
+
+// function loading(userId) {
+//     return fetch("https://api.line.me/v2/bot/chat/loading/start", {
+//         method: "POST", // HTTP method
+//         headers: {
+//             "Content-Type": "application/json", // Content type
+//             Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
+//         },
+//         body: JSON.stringify({ chatId: userId }) // Request payload
+//     })
+//         .then(response => {
+//             if (!response.ok) {
+//                 throw new Error(`HTTP error! Status: ${response.status}`);
+//             }
+//             return response.json();
+//         })
+//         .catch(error => {
+//             console.error("Error:", error);
+//         });
+// }
 
 
 module.exports = Register;
