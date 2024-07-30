@@ -27,7 +27,7 @@ GenQr.Register = function (inputBody) {
         let uploadDir = path.join(__dirname, '../../uploads');
         let pathUpload = path.join(uploadDir, fileName);
 
-        await this.genFromUserId(data.user_id, pathUpload)
+        await GenQr.genFromUserId(data.user_id, pathUpload)
             .then(response => {
                 let qrURL = { qr_url: '/images/' + fileName }
                 Object.assign(data, qrURL)

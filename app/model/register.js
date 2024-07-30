@@ -15,13 +15,8 @@ Register.Registration = function (event, client) {
         const profile = await client.getProfile(userId);
         // Reply กำลังดำเนินงาน
         // ----->
-        const replyToken = event.replyToken;
-        const preMessage = [
-            {
-                type: 'text',
-                text: 'กำลังดำเนินการ'
-            }
-        ];
+        // const replyToken = event.replyToken;
+      
         const proMessage = [
             {
                 type: 'text',
@@ -31,7 +26,7 @@ Register.Registration = function (event, client) {
 
         // let preMessageRes = await client.replyMessage(replyToken, preMessage)
         // console.log("preMessageRes: ", preMessageRes);
-        await client.replyMessage(replyToken, preMessage)
+        // await client.replyMessage(replyToken, preMessage)
         // await loading(userId);
         //<----------- API DATA BASE สร้าง model ใหม่
         await GenQr.Register(profile)
