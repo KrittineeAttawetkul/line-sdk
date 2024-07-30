@@ -25,7 +25,7 @@ LINE_SDK.Webhook = function (req) {
         const userId = event.source.userId;
         const profile = await client.getProfile(userId);
 
-        await loading(userId);
+        // await loading(userId);
 
         //console.log("Processing event:", event);
         //console.log(profile)
@@ -47,25 +47,25 @@ LINE_SDK.Webhook = function (req) {
   });
 }
 
-function loading(userId) {
-  return fetch("https://api.line.me/v2/bot/chat/loading/start", {
-    method: "POST", // HTTP method
-    headers: {
-      "Content-Type": "application/json", // Content type
-      Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
-    },
-    body: JSON.stringify({ chatId: userId }) // Request payload
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .catch(error => {
-      console.error("Error:", error);
-    });
-}
+// function loading(userId) {
+//   return fetch("https://api.line.me/v2/bot/chat/loading/start", {
+//     method: "POST", // HTTP method
+//     headers: {
+//       "Content-Type": "application/json", // Content type
+//       Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
+//     },
+//     body: JSON.stringify({ chatId: userId }) // Request payload
+//   })
+//     .then(response => {
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+//       return response.json();
+//     })
+//     .catch(error => {
+//       console.error("Error:", error);
+//     });
+// }
 
 
 const message_trigger = async function (event) {

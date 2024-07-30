@@ -27,7 +27,7 @@ Register.Registration = function (event, client) {
         // let preMessageRes = await client.replyMessage(replyToken, preMessage)
         // console.log("preMessageRes: ", preMessageRes);
         // await client.replyMessage(replyToken, preMessage)
-        // await loading(userId);
+        await loading(userId);
         //<----------- API DATA BASE สร้าง model ใหม่
         await GenQr.Register(profile)
 
@@ -38,25 +38,25 @@ Register.Registration = function (event, client) {
     })
 }
 
-// function loading(userId) {
-//     return fetch("https://api.line.me/v2/bot/chat/loading/start", {
-//         method: "POST", // HTTP method
-//         headers: {
-//             "Content-Type": "application/json", // Content type
-//             Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
-//         },
-//         body: JSON.stringify({ chatId: userId }) // Request payload
-//     })
-//         .then(response => {
-//             if (!response.ok) {
-//                 throw new Error(`HTTP error! Status: ${response.status}`);
-//             }
-//             return response.json();
-//         })
-//         .catch(error => {
-//             console.error("Error:", error);
-//         });
-// }
+function loading(userId) {
+    return fetch("https://api.line.me/v2/bot/chat/loading/start", {
+        method: "POST", // HTTP method
+        headers: {
+            "Content-Type": "application/json", // Content type
+            Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
+        },
+        body: JSON.stringify({ chatId: userId }) // Request payload
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+}
 
 
 module.exports = Register;
