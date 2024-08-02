@@ -109,7 +109,10 @@ Transfer.transferPoint = function (transferInput) {
             statusCode: 200
         }
 
+        const invoiceNum = generateInvoiceNumber()
+
         let transferDb = {
+            invoice_num: invoiceNum,
             sender_id: transferInput.sender_id,
             receiver_id: transferInput.receiver_id,
             type: 'transfer',
@@ -131,32 +134,40 @@ Transfer.transferPoint = function (transferInput) {
                         // For example, check if point_amount to be transferred is less than or equal to the balance
                         if (balanceData.balance >= transferDb.point_amount) {
 
-                            const transfer =
-                                `INSERT INTO point_transfer SET ?`
+                            if (transferDb.point_amount > 0) {
+                                const transfer =
+                                    `INSERT INTO point_transfer SET ?`
 
-                            sql.query(
-                                transfer,
-                                [transferDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                                //call back function
-                                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
-                                    if (!err) {
-                                        if (results.affectedRows > 0) {
-                                            // If successful
-                                            response.data = { message: 'Transfer successful' };
-                                            resolve(response);
+                                sql.query(
+                                    transfer,
+                                    [transferDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                                    //call back function
+                                    (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                                        if (!err) {
+                                            if (results.affectedRows > 0) {
+                                                // If successful
+                                                response.data = { message: 'Transfer successful' };
+                                                resolve(response);
+                                            } else {
+                                                // is not effective
+                                                response.status = false;
+                                                response.errMsg = 'บันทึกไม่สำเร็จ'
+                                                resolve(response);
+                                            }
                                         } else {
-                                            // is not effective
-                                            response.status = false;
-                                            response.errMsg = 'บันทึกไม่สำเร็จ'
-                                            resolve(response);
+                                            response["status"] = false;
+                                            response.errMsg = err;
+                                            reject(response);
                                         }
-                                    } else {
-                                        response["status"] = false;
-                                        response.errMsg = err;
-                                        reject(response);
                                     }
-                                }
-                            )
+                                )
+                            } else {
+                                console.log('point amount = 0')
+                                response.status = false;
+                                response.errMsg = 'point amount = 0';
+                                response.statusCode = 400;
+                                reject(response);
+                            }
                         } else {
                             // Insufficient balance
                             response.status = false;
@@ -190,7 +201,7 @@ Transfer.transferPoint = function (transferInput) {
     })
 }
 
-Transfer.earnPoint = function (voidInput) {
+Transfer.earnPoint = function (earnInput) {
     return new Promise(async (resolve, reject) => {
         let response = {
             status: true,
@@ -199,13 +210,16 @@ Transfer.earnPoint = function (voidInput) {
             statusCode: 200
         }
 
+        const invoiceNum = generateInvoiceNumber()
+
         let earnDb = {
+            invoice_num: invoiceNum,
             sender_id: null,
-            receiver_id: voidInput.receiver_id,
+            receiver_id: earnInput.receiver_id,
             type: 'earn',
-            point_amount: voidInput.point_amount,
-            comment: voidInput.comment,
-            slip_url: voidInput.slip_url
+            point_amount: earnInput.point_amount,
+            comment: earnInput.comment,
+            slip_url: earnInput.slip_url
         }
 
         if (earnDb.point_amount > 0) {
@@ -236,9 +250,9 @@ Transfer.earnPoint = function (voidInput) {
                 }
             )
         } else {
-            console.log('Balance is 0')
+            console.log('point amount = 0')
             response.status = false;
-            response.errMsg = 'Balance is 0';
+            response.errMsg = 'point amount = 0';
             response.statusCode = 400;
             reject(response);
         }
@@ -254,50 +268,92 @@ Transfer.voidPoint = function (voidInput) {
             statusCode: 200
         }
 
+        const invoiceNum = generateInvoiceNumber()
+
         let voidDb = {
-            sender_id: voidInput.sender_id,
+            invoice_num: invoiceNum,
             receiver_id: null,
             type: 'void',
-            point_amount: voidInput.point_amount,
-            comment: voidInput.comment,
-            slip_url: voidInput.slip_url
         }
 
-        if (voidDb.point_amount > 0) {
-            const vPoint =
-                `INSERT INTO point_transfer SET ?`
+        Object.assign(voidInput, voidDb);
 
-            sql.query(
-                vPoint,
-                [voidDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                //call back function
-                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
-                    if (!err) {
-                        if (results.affectedRows > 0) {
-                            // If successful
-                            response.data = { message: 'Void successful' };
-                            resolve(response);
+        await Transfer.getBalanceByUserId(voidInput.sender_id)
+            .then(result => {
+                let balanceData = result.data;
+                console.log(voidInput.sender_id, '-> Balance:', balanceData.balance)
+
+                if (balanceData.balance > 0) {
+
+                    // For example, check if point_amount to be transferred is less than or equal to the balance
+                    if (balanceData.balance >= voidInput.point_amount) {
+
+                        if (voidInput.point_amount > 0) {
+                            const vPoint =
+                                `INSERT INTO point_transfer SET ?`
+
+                            sql.query(
+                                vPoint,
+                                [voidInput], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                                //call back function
+                                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                                    if (!err) {
+                                        if (results.affectedRows > 0) {
+                                            // If successful
+                                            response.data = { message: 'Void successful' };
+                                            resolve(response);
+                                        } else {
+                                            // is not effective
+                                            response.status = false;
+                                            response.errMsg = 'บันทึกไม่สำเร็จ'
+                                            resolve(response);
+                                        }
+                                    } else {
+                                        response["status"] = false;
+                                        response.errMsg = err;
+                                        reject(response);
+                                    }
+                                }
+                            )
                         } else {
-                            // is not effective
+                            console.log('point amount = 0')
                             response.status = false;
-                            response.errMsg = 'บันทึกไม่สำเร็จ'
-                            resolve(response);
+                            response.errMsg = 'point amount = 0';
+                            response.statusCode = 400;
+                            reject(response);
                         }
                     } else {
-                        response["status"] = false;
-                        response.errMsg = err;
+                        // Insufficient balance
+                        response.status = false;
+                        response.errMsg = 'Insufficient balance';
+                        response.statusCode = 400;
                         reject(response);
                     }
+                } else {
+                    // Balance is not greater than 0
+                    response.status = false;
+                    response.errMsg = 'Balance is not sufficient';
+                    response.statusCode = 400;
+                    reject(response);
                 }
-            )
-        } else {
-            console.log('Balance is 0')
-            response.status = false;
-            response.errMsg = 'Balance is 0';
-            response.statusCode = 400;
-            reject(response);
-        }
+            })
+            .catch(err => {
+                response.status = false;
+                response.errMsg = err.message || 'Error occurred';
+                response.statusCode = 500;
+                reject(response);
+            });
     })
+}
+
+function generateInvoiceNumber() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+
+    return `INV-${day}${month}${year}-${randomDigits}`;
 }
 
 module.exports = Transfer
