@@ -109,35 +109,34 @@ Transfer.transferPoint = function (transferInput) {
             statusCode: 200
         }
 
-        let pointDb = {
-            sender_id:transferInput.sender_id,
-            receiver_id:transferInput.receiver_id,
-            type:'transfer',
-            point_amount:transferInput.point_amount,
-            comment:transferInput.comment,
-            slip_url:transferInput.slip_url
+        let transferDb = {
+            sender_id: transferInput.sender_id,
+            receiver_id: transferInput.receiver_id,
+            type: 'transfer',
+            point_amount: transferInput.point_amount,
+            comment: transferInput.comment,
+            slip_url: transferInput.slip_url
         }
 
-        await Transfer.getBalanceByUserId(pointDb.sender_id)
+        await Transfer.getBalanceByUserId(transferDb.sender_id)
             .then(result => {
                 let balanceData = result.data;
-                console.log(pointDb.sender_id, '-> Balance:', balanceData.balance)
+                console.log(transferDb.sender_id, '-> Balance:', balanceData.balance)
 
-                if (pointDb.sender_id !== pointDb.receiver_id) {
+                if (transferDb.sender_id !== transferDb.receiver_id) {
                     console.log('diff user name')
-                    // Assuming balanceData contains a field named 'balance' that holds the balance value
+
                     if (balanceData.balance > 0) {
-                        // Continue with the transfer logic if balance is greater than 0
 
                         // For example, check if point_amount to be transferred is less than or equal to the balance
-                        if (balanceData.balance >= pointDb.point_amount) {
+                        if (balanceData.balance >= transferDb.point_amount) {
 
                             const transfer =
                                 `INSERT INTO point_transfer SET ?`
 
                             sql.query(
                                 transfer,
-                                [pointDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                                [transferDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
                                 //call back function
                                 (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
                                     if (!err) {
@@ -181,7 +180,6 @@ Transfer.transferPoint = function (transferInput) {
                     reject(response);
                 }
 
-
             })
             .catch(err => {
                 response.status = false;
@@ -189,6 +187,116 @@ Transfer.transferPoint = function (transferInput) {
                 response.statusCode = 500;
                 reject(response);
             });
+    })
+}
+
+Transfer.earnPoint = function (voidInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        let earnDb = {
+            sender_id: null,
+            receiver_id: voidInput.receiver_id,
+            type: 'earn',
+            point_amount: voidInput.point_amount,
+            comment: voidInput.comment,
+            slip_url: voidInput.slip_url
+        }
+
+        if (earnDb.point_amount > 0) {
+            const earn =
+                `INSERT INTO point_transfer SET ?`
+
+            sql.query(
+                earn,
+                [earnDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                //call back function
+                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                    if (!err) {
+                        if (results.affectedRows > 0) {
+                            // If successful
+                            response.data = { message: 'Earn successful' };
+                            resolve(response);
+                        } else {
+                            // is not effective
+                            response.status = false;
+                            response.errMsg = 'บันทึกไม่สำเร็จ'
+                            resolve(response);
+                        }
+                    } else {
+                        response["status"] = false;
+                        response.errMsg = err;
+                        reject(response);
+                    }
+                }
+            )
+        } else {
+            console.log('Balance is 0')
+            response.status = false;
+            response.errMsg = 'Balance is 0';
+            response.statusCode = 400;
+            reject(response);
+        }
+    })
+}
+
+Transfer.voidPoint = function (voidInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        let voidDb = {
+            sender_id: voidInput.sender_id,
+            receiver_id: null,
+            type: 'void',
+            point_amount: voidInput.point_amount,
+            comment: voidInput.comment,
+            slip_url: voidInput.slip_url
+        }
+
+        if (voidDb.point_amount > 0) {
+            const vPoint =
+                `INSERT INTO point_transfer SET ?`
+
+            sql.query(
+                vPoint,
+                [voidDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                //call back function
+                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                    if (!err) {
+                        if (results.affectedRows > 0) {
+                            // If successful
+                            response.data = { message: 'Void successful' };
+                            resolve(response);
+                        } else {
+                            // is not effective
+                            response.status = false;
+                            response.errMsg = 'บันทึกไม่สำเร็จ'
+                            resolve(response);
+                        }
+                    } else {
+                        response["status"] = false;
+                        response.errMsg = err;
+                        reject(response);
+                    }
+                }
+            )
+        } else {
+            console.log('Balance is 0')
+            response.status = false;
+            response.errMsg = 'Balance is 0';
+            response.statusCode = 400;
+            reject(response);
+        }
     })
 }
 

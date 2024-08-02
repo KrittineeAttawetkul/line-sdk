@@ -2,7 +2,7 @@
 const { middleware } = require('@line/bot-sdk');
 const lineConfig = require('../../configs/lineConfig');
 
-module.exports = function(app){
+module.exports = function (app) {
   var test = require("../controller/test");
   var lineSdk = require('../controller/lineWebhook');
   var Users = require('../controller/users');
@@ -15,4 +15,6 @@ module.exports = function(app){
   app.route("/api/users").post(Users.getUserByUserId);
   app.route("/api/balance").post(Transfer.getBalanceByUserId);
   app.route("/api/transfer").post(Transfer.transferPoint);
+  app.route("/api/earn").post(Transfer.earnPoint);
+  app.route("/api/void").post(Transfer.voidPoint);
 }
