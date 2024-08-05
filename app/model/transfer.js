@@ -346,6 +346,118 @@ Transfer.voidPoint = function (voidInput) {
     })
 }
 
+Transfer.getDataByInvoiceNum = function (invoice_num) {
+    return new Promise((resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        const s = "SELECT * FROM point_transfer WHERE invoice_num = ? AND ( type = 'earn' OR type = 'redeem')";
+
+        try {
+            sql.query(
+                s,
+                [invoice_num], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                //call back function
+                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                    if (err) {
+                        console.log(err)
+                        response.errMsg = err
+                        response.status = false
+                        response.statusCode = 500
+                        reject(response)
+                    }
+                    else {
+                        if (results.length > 0) {
+                            response["data"] /* รูปแบบที่ 2 */ = results[0]; //ทำให้เป็๋น Obj
+                        }
+                        else {
+                            response.errMsg = 'ไม่พบข้อมูลในระบบ'
+                        }
+                        resolve(response)
+                    }
+                }
+            )
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
+Transfer.voidEarn = function (voidInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        await Transfer.getDataByInvoiceNum(voidInput.invoice_num)
+            .then(result => {
+
+                let Data = result.data;
+                console.log('Data',Data)
+
+                if (Data.length !== 0) {
+
+                    let voidDb = {
+                        invoice_num: Data.invoice_num,
+                        sender_id: Data.receiver_id,
+                        receiver_id: null,
+                        type: 'void',
+                        point_amount: Data.point_amount,
+                        comment: '',
+                        slip_url: ''
+                    }
+                    
+                    const vPoint =
+                        `INSERT INTO point_transfer SET ?`
+
+                    sql.query(
+                        vPoint,
+                        [voidDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                        //call back function
+                        (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                            if (!err) {
+                                if (results.affectedRows > 0) {
+                                    // If successful
+                                    response.data = { message: 'Void successful' };
+                                    resolve(response);
+                                } else {
+                                    // is not effective
+                                    response.status = false;
+                                    response.errMsg = 'บันทึกไม่สำเร็จ'
+                                    resolve(response);
+                                }
+                            } else {
+                                response["status"] = false;
+                                response.errMsg = err;
+                                reject(response);
+                            }
+                        }
+                    )
+                } else {
+                    response.status = false;
+                    response.errMsg = 'Not earn or redeem';
+                    response.statusCode = 400;
+                    reject(response);
+                }
+            })
+            .catch(err => {
+                response.status = false;
+                response.errMsg = err.message || 'Error occurred';
+                response.statusCode = 500;
+                reject(response);
+            });
+    })
+}
+
+
+
 function generateInvoiceNumber() {
     const date = new Date();
     const year = date.getFullYear();

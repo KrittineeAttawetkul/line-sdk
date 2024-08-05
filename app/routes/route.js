@@ -17,4 +17,6 @@ module.exports = function (app) {
   app.route("/api/transfer").post(Transfer.transferPoint);
   app.route("/api/earn").post(Transfer.earnPoint);
   app.route("/api/void").post(Transfer.voidPoint);
+  app.route("/api/invoice").post(Transfer.getDataByInvoiceNum);
+  app.route("/api/voidEarn").post(Transfer.voidEarn);
 }

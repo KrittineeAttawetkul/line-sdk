@@ -43,3 +43,26 @@ exports.voidPoint = async function (req, res) {
             res.status(400).send(err)
         });
 }
+
+exports.getDataByInvoiceNum = async function (req, res) {
+    const invoice_num = req.body.invoice_num
+    console.log('invoice_num: ', invoice_num);
+
+    await Transfer.getDataByInvoiceNum(invoice_num)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(400).send(err)
+        });
+}
+
+exports.voidEarn = async function (req, res) {
+    const voidInput = req.body
+
+    await Transfer.voidEarn(voidInput)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(400).send(err)
+        });
+}
