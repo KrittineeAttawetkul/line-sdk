@@ -14,14 +14,6 @@ Transfer.getBalanceByUserId = function (user_id) {
         }
 
         const balance =
-            // `SELECT
-            //     user_id,
-            //     SUM(point_amount) AS balance
-            // FROM
-            //     (SELECT sender_id AS user_id, -point_amount AS point_amount FROM point_transfer
-            // UNION ALL
-            // SELECT receiver_id AS user_id, point_amount AS point_amount FROM point_transfer) AS all_transfers
-            // GROUP BY user_id`;
 
             `SELECT
                 user_id,
@@ -372,7 +364,7 @@ Transfer.getDataByInvoiceNum = function (invoice_num) {
                     }
                     else {
                         if (results.length > 0) {
-                            response["data"] /* รูปแบบที่ 2 */ = results; //ทำให้เป็๋น Obj
+                            response["data"] /* รูปแบบที่ 2 */ = results; //ทำให้เป็๋น Obj // Return all matching records
                         }
                         else {
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
@@ -425,8 +417,8 @@ Transfer.voidEarn = function (voidInput) {
                         receiver_id: null,
                         type: 'void',
                         point_amount: data[0].point_amount,
-                        comment: '',
-                        slip_url: ''
+                        comment: voidInput.comment,
+                        slip_url: voidInput.slip_url
                     }
 
                     const vPoint = "INSERT INTO point_transfer SET ?";
@@ -453,7 +445,7 @@ Transfer.voidEarn = function (voidInput) {
                     )
                 } else {
                     response.status = false;
-                    response.errMsg = 'Not earn or redeem';
+                    response.errMsg = 'Not earn';
                     response.statusCode = 400;
                     reject(response);
                 }
