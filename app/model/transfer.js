@@ -355,7 +355,7 @@ Transfer.getDataByInvoiceNum = function (invoice_num) {
             statusCode: 200
         }
 
-        const s = "SELECT * FROM point_transfer WHERE invoice_num = ? AND ( type = 'earn' OR type = 'redeem')";
+        const s = "SELECT * FROM point_transfer WHERE invoice_num = ? AND (type = 'earn' OR type = 'redeem' OR type = 'void')";
 
         try {
             sql.query(
@@ -372,7 +372,7 @@ Transfer.getDataByInvoiceNum = function (invoice_num) {
                     }
                     else {
                         if (results.length > 0) {
-                            response["data"] /* รูปแบบที่ 2 */ = results[0]; //ทำให้เป็๋น Obj
+                            response["data"] /* รูปแบบที่ 2 */ = results; //ทำให้เป็๋น Obj
                         }
                         else {
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
@@ -398,37 +398,48 @@ Transfer.voidEarn = function (voidInput) {
 
         await Transfer.getDataByInvoiceNum(voidInput.invoice_num)
             .then(result => {
+                let data = result.data;
+                console.log('Data', data)
 
-                let Data = result.data;
-                console.log('Data',Data)
+                let hasEarn = false;
+                let hasVoid = false;
 
-                if (Data.length !== 0) {
+                data.forEach(record => {
+                    if (record.type === 'earn') {
+                        hasEarn = true;
+                    }
+                    if (record.type === 'void') {
+                        hasVoid = true;
+                    }
+                });
 
+                if (hasVoid) {
+                    response.status = false;
+                    response.errMsg = 'Cannot void an already voided transaction';
+                    response.statusCode = 400;
+                    reject(response);
+                } else if (hasEarn) {
                     let voidDb = {
-                        invoice_num: Data.invoice_num,
-                        sender_id: Data.receiver_id,
+                        invoice_num: data[0].invoice_num,
+                        sender_id: data[0].receiver_id,
                         receiver_id: null,
                         type: 'void',
-                        point_amount: Data.point_amount,
+                        point_amount: data[0].point_amount,
                         comment: '',
                         slip_url: ''
                     }
-                    
-                    const vPoint =
-                        `INSERT INTO point_transfer SET ?`
+
+                    const vPoint = "INSERT INTO point_transfer SET ?";
 
                     sql.query(
                         vPoint,
-                        [voidDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                        //call back function
-                        (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                        [voidDb],
+                        (err, results, fields) => {
                             if (!err) {
                                 if (results.affectedRows > 0) {
-                                    // If successful
                                     response.data = { message: 'Void successful' };
                                     resolve(response);
                                 } else {
-                                    // is not effective
                                     response.status = false;
                                     response.errMsg = 'บันทึกไม่สำเร็จ'
                                     resolve(response);
