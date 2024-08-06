@@ -4,7 +4,6 @@ const { createCanvas, loadImage, registerFont } = require('canvas')
 const path = require('path');
 const LINE_SDK = require('./lineWebhook');
 
-
 var Canvas = function () {
     this.created_at = new Date()
 }
@@ -264,7 +263,7 @@ Canvas.pointBalance = function (user_id) {
             data: [],
             statusCode: 200
         }
-
+        
     })
 }
 
