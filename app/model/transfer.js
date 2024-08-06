@@ -1,5 +1,5 @@
 const sql = require('../../configs/db');
-const Canvas = require('./Canvas');
+const Canvas = require('./canvas');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -141,6 +141,7 @@ Transfer.transferPoint = function (transferInput) {
                                                 // If successful
                                                 response.data = { message: 'Transfer successful' };
                                                 Canvas.transferSlip(transferInput)
+                                                Canvas.receiveSlip(transferInput)
                                                 resolve(response);
                                             } else {
                                                 // is not effective
