@@ -7,8 +7,6 @@ module.exports = function (app) {
   var lineSdk = require('../controller/lineWebhook');
   var Users = require('../controller/users');
   const Transfer = require('../controller/transfer');
-  const Canvas = require('../controller/canvas');
-
 
   app.route("/api/test").get(test.Test);
   app.route("/webhook").post(lineSdk.Webhook);
@@ -20,5 +18,4 @@ module.exports = function (app) {
   app.route("/api/void").post(Transfer.voidPoint);
   app.route("/api/invoice").post(Transfer.getDataByInvoiceNum);
   app.route("/api/voidEarn").post(Transfer.voidEarn);
-  app.route("/api/point").post(Canvas.pointBalance);
 }

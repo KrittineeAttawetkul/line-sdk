@@ -5,6 +5,8 @@ const lineConfig = require('../../configs/lineConfig');
 const client = new Client(lineConfig);
 const richmenu = require('../../configs/richmenu');
 const Register = require('./register');
+const Canvas = require('./Canvas');
+const Transfer = require('./transfer');
 
 var LINE_SDK = function (user) {
   this.created_at = new Date();
@@ -35,7 +37,8 @@ LINE_SDK.Webhook = function (req) {
         // }
 
         // type messasge
-        message_trigger(event)
+
+        message_trigger(event, userId)
 
       }
       resolve();
@@ -103,11 +106,29 @@ LINE_SDK.getProfile = function (userId) {
 // }
 
 
-const message_trigger = async function (event) {
+const message_trigger = async function (event, userId) {
   if (event.type === 'message') {
     let text = event.message.text;
     if (text === 'สมัครสมาชิก') {
       await Register.Registration(event, client)
+    }
+    if (text === 'Check point') {
+      await Transfer.getBalanceByUserId(userId)
+        .then((result) => {
+          Canvas.pointBalance(event, client, result)
+
+          const pointCard = [
+            {
+              "type": "image",
+              "originalContentUrl": "https://example.com/original.jpg",
+              "previewImageUrl": "https://example.com/preview.jpg"
+            }
+          ];
+
+        }).catch((err) => {
+          console.log(err)
+        });
+        
     }
   }
 }

@@ -1,5 +1,6 @@
 const sql = require('../../configs/db');
 const Canvas = require('./Canvas');
+const LINE_SDK = require('./lineWebhook');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -114,6 +115,15 @@ Transfer.transferPoint = function (transferInput) {
             slip_url: transferInput.slip_url
         }
 
+        const sender = await LINE_SDK.getProfile(transferDb.sender_id)
+        const receiver = await LINE_SDK.getProfile(transferDb.receiver_id)
+
+        let drawPlayLoad = {
+            sender,
+            receiver,
+            transferInfo: transferInput
+        }
+
         await Transfer.getBalanceByUserId(transferDb.sender_id)
             .then(result => {
                 let balanceData = result.data;
@@ -140,8 +150,8 @@ Transfer.transferPoint = function (transferInput) {
                                             if (results.affectedRows > 0) {
                                                 // If successful
                                                 response.data = { message: 'Transfer successful' };
-                                                Canvas.transferSlip(transferInput)
-                                                Canvas.receiveSlip(transferInput)
+                                                Canvas.transferSlip(drawPlayLoad)
+                                                Canvas.receiveSlip(drawPlayLoad)
                                                 resolve(response);
                                             } else {
                                                 // is not effective

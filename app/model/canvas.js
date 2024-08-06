@@ -2,7 +2,7 @@ const sql = require('../../configs/db');
 const fs = require('fs')
 const { createCanvas, loadImage, registerFont } = require('canvas')
 const path = require('path');
-const LINE_SDK = require('./lineWebhook');
+
 
 var Canvas = function () {
     this.created_at = new Date()
@@ -18,16 +18,16 @@ Canvas.transferSlip = function (transferInput) {
         }
 
         let transferData = {
-            sender_id: transferInput.sender_id,
-            receiver_id: transferInput.receiver_id,
-            point_amount: transferInput.point_amount,
+            sender_id: transferInput.transferInfo.sender_id,
+            receiver_id: transferInput.transferInfo.receiver_id,
+            point_amount: transferInput.transferInfo.point_amount,
+            sender: transferInput.sender,
+            receiver: transferInput.receiver
         }
 
         try {
-            const sender = await LINE_SDK.getProfile(transferData.sender_id)
-            const receiver = await LINE_SDK.getProfile(transferData.receiver_id)
 
-            if (!sender && !receiver) {
+            if (!transferData.sender && !transferData.receiver) {
                 console.error('No profile data returned');
                 return;
             }
@@ -48,7 +48,7 @@ Canvas.transferSlip = function (transferInput) {
             ctx.textAlign = 'center'
             // ctx.textBaseline = 'top'
 
-            const receiver_name = receiver.displayName || 'Default Name';
+            const receiver_name = transferData.receiver.displayName || 'Default Name';
             ctx.fillStyle = '#000'
             ctx.font = '46px Prompt'
             ctx.fillText(`ให้คะแนน`, 400, 75)
@@ -94,8 +94,8 @@ Canvas.transferSlip = function (transferInput) {
                 fs.mkdirSync(outputDir);
             }
 
-            const receiver_img = receiver.pictureUrl
-            const sender_img = sender.pictureUrl
+            const receiver_img = transferData.receiver.pictureUrl
+            const sender_img = transferData.sender.pictureUrl
             const arrowPath = path.join(__dirname, '../../assets/transferArrow.png');
 
             Promise.all([loadImage(receiver_img), loadImage(sender_img), loadImage(arrowPath)])
@@ -115,11 +115,11 @@ Canvas.transferSlip = function (transferInput) {
                     out.on('finish', () => console.log('The TransferSlip file was created.'));
 
                     // Save the canvas to a file with the current date as the name
-                    // const outPath = path.join(outputDir, `sender_${Date.timestamp}.png`);
-                    // const outFile = fs.createWriteStream(outPath);
-                    // const streamFile = canvas.createPNGStream();
-                    // streamFile.pipe(outFile);
-                    // outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
+                    const outPath = path.join(outputDir, `sender_${transferData.sender_id}.png`);
+                    const outFile = fs.createWriteStream(outPath);
+                    const streamFile = canvas.createPNGStream();
+                    streamFile.pipe(outFile);
+                    outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
                     resolve()
                 })
                 .catch((err) => {
@@ -142,16 +142,16 @@ Canvas.receiveSlip = function (receiveInput) {
         }
 
         let receiveData = {
-            sender_id: receiveInput.sender_id,
-            receiver_id: receiveInput.receiver_id,
-            point_amount: receiveInput.point_amount,
+            sender_id: receiveInput.transferInfo.sender_id,
+            receiver_id: receiveInput.transferInfo.receiver_id,
+            point_amount: receiveInput.transferInfo.point_amount,
+            sender: receiveInput.sender,
+            receiver: receiveInput.receiver
         }
 
         try {
-            const sender = await LINE_SDK.getProfile(receiveData.sender_id)
-            const receiver = await LINE_SDK.getProfile(receiveData.receiver_id)
 
-            if (!sender && !receiver) {
+            if (!receiveData.sender && !receiveData.receiver) {
                 console.error('No profile data returned');
                 return;
             }
@@ -171,7 +171,7 @@ Canvas.receiveSlip = function (receiveInput) {
             ctx.fillRect(0, 0, width, height)
             ctx.textAlign = 'center'
             // ctx.textBaseline = 'top'
-            const sender_name = sender.displayName || 'Default Name';
+            const sender_name = receiveData.sender.displayName || 'Default Name';
             ctx.fillStyle = '#000'
             ctx.font = '46px Prompt'
             ctx.fillText(`ได้รับคะแนนจาก`, 400, 75)
@@ -217,8 +217,8 @@ Canvas.receiveSlip = function (receiveInput) {
                 fs.mkdirSync(outputDir);
             }
 
-            const receiver_img = receiver.pictureUrl
-            const sender_img = sender.pictureUrl
+            const receiver_img = receiveData.receiver.pictureUrl
+            const sender_img = receiveData.sender.pictureUrl
             const arrowPath = path.join(__dirname, '../../assets/receiveArrow.png');
 
             Promise.all([loadImage(receiver_img), loadImage(sender_img), loadImage(arrowPath)])
@@ -238,7 +238,102 @@ Canvas.receiveSlip = function (receiveInput) {
                     receiveOut.on('finish', () => console.log('The ReceiveSlip file was created.'));
 
                     // Save the canvas to a file with the current date as the name
-                    // const outPath = path.join(outputDir, `receiver_${Date.timestamp}.png`);
+                    const outPath = path.join(outputDir, `receiver_${receiveData.receiver_id}.png`);
+                    const outFile = fs.createWriteStream(outPath);
+                    const streamFile = canvas.createPNGStream();
+                    streamFile.pipe(outFile);
+                    outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
+                    resolve()
+                })
+                .catch((err) => {
+                    console.error('Failed to load images:', err);
+                    reject(err)
+                });
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
+Canvas.pointBalance = function (event, client, result) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        const userId = event.source.userId;
+        const profile = await client.getProfile(userId);
+
+        const BalanceData = result.data.balance
+
+        console.log(profile)
+        console.log(BalanceData)
+
+        if (!profile) {
+            console.error('No profile data returned');
+            return;
+        }
+
+        try {
+
+            // Register the custom font
+            const fontPrompt = path.join(__dirname, '../../assets/Prompt/Prompt-Bold.ttf');
+            registerFont(fontPrompt, { family: 'Prompt' });
+
+            const width = 1040
+            const height = 1040
+            const canvas = createCanvas(width, height)
+            const ctx = canvas.getContext('2d')
+
+            ctx.fillStyle = '#fff'
+            ctx.fillRect(0, 0, width, height)
+
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'top'
+
+            const Name = profile.displayName || 'Default Name';
+
+            ctx.fillStyle = '#000'
+            ctx.font = '64px Sans'
+            ctx.fillText(`${Name}`, 520, 850)
+
+            ctx.fillStyle = '#000'
+            ctx.font = '64px Prompt'
+            ctx.fillText('Your Nilecon Points', 520, 110)
+
+            // const buffer = canvas.toBuffer('image/png')
+            // fs.writeFileSync('./output.png', buffer)
+
+            // Ensure the output directory exists
+            const outputFile = 'pointCard_images';
+            if (!fs.existsSync(outputFile)) {
+                fs.mkdirSync(outputFile);
+            }
+
+            const background = path.join(__dirname, '../../assets/red.png');
+
+            Promise.all([loadImage(background)])
+                .then(([image]) => {
+
+                    ctx.drawImage(image, 0, 300, 1040, 468.13);
+
+                    const Point = BalanceData;
+
+                    ctx.fillStyle = '#fff'
+                    ctx.font = 'bold 300px Prompt'
+                    ctx.fillText(`${Point}`, 520, 300)
+
+                    // Save the canvas to a file
+                    const pointout = fs.createWriteStream('PointCard.png');
+                    const stream = canvas.createPNGStream();
+                    stream.pipe(pointout);
+                    pointout.on('finish', () => console.log('The PointCard file was created.'));
+
+                    // // Save the canvas to a file with the current date as the name
+                    // const outPath = path.join(outputFile, `sender_${transferData.sender_id}.png`);
                     // const outFile = fs.createWriteStream(outPath);
                     // const streamFile = canvas.createPNGStream();
                     // streamFile.pipe(outFile);
@@ -252,18 +347,7 @@ Canvas.receiveSlip = function (receiveInput) {
         } catch (err) {
             reject(err)
         }
-    })
-}
 
-Canvas.pointBalance = function (user_id) {
-    return new Promise(async (resolve, reject) => {
-        let response = {
-            status: true,
-            errMsg: '',
-            data: [],
-            statusCode: 200
-        }
-        
     })
 }
 
