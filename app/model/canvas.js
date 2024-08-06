@@ -3,7 +3,7 @@ const fs = require('fs')
 const { createCanvas, loadImage, registerFont } = require('canvas')
 const path = require('path');
 const LINE_SDK = require('./lineWebhook');
-const transfer = require('./transfer');
+
 
 var Canvas = function () {
     this.created_at = new Date()
@@ -255,6 +255,7 @@ Canvas.receiveSlip = function (receiveInput) {
         }
     })
 }
+
 Canvas.pointBalance = function (user_id) {
     return new Promise(async (resolve, reject) => {
         let response = {
@@ -263,30 +264,7 @@ Canvas.pointBalance = function (user_id) {
             data: [],
             statusCode: 200
         }
-        try {
 
-            const profile = LINE_SDK.getProfile(user_id)
-
-            if (!profile) {
-                console.error('No profile data returned');
-                return;
-            }
-
-            console.log(profile.displayName)
-
-            await transfer.getBalanceByUserId(user_id)
-                .then((result) => {
-                    console.log(result)
-                    console.log(result.data)
-
-                    response.data = result
-                    resolve()
-                }).catch((err) => {
-                    reject(err)
-                });
-        } catch (err) {
-
-        }
     })
 }
 
