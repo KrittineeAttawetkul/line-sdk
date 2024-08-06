@@ -27,8 +27,6 @@ LINE_SDK.Webhook = function (req) {
         const userId = event.source.userId;
         const profile = await client.getProfile(userId);
 
-        // await loading(userId);
-
         //console.log("Processing event:", event);
         //console.log(profile)
 
@@ -50,62 +48,6 @@ LINE_SDK.Webhook = function (req) {
   });
 }
 
-LINE_SDK.getProfile = function (userId) {
-  return new Promise(async (resolve, reject) => {
-
-    try {
-      const response = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${lineConfig.channelAccessToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json(); // The response is already parsed as an object
-      //console.log('data Profile:', data);
-
-      const user = {
-        userId: data.userId,
-        displayName: data.displayName,
-        pictureUrl: data.pictureUrl
-      }
-
-      //console.log('User Profile:', user);
-
-      resolve(user);
-
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      reject(error)
-    }
-  })
-}
-
-// function loading(userId) {
-//   return fetch("https://api.line.me/v2/bot/chat/loading/start", {
-//     method: "POST", // HTTP method
-//     headers: {
-//       "Content-Type": "application/json", // Content type
-//       Authorization: `Bearer ${lineConfig.channelAccessToken}` // Authorization header with Bearer token
-//     },
-//     body: JSON.stringify({ chatId: userId }) // Request payload
-//   })
-//     .then(response => {
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! Status: ${response.status}`);
-//       }
-//       return response.json();
-//     })
-//     .catch(error => {
-//       console.error("Error:", error);
-//     });
-// }
-
-
 const message_trigger = async function (event, userId) {
   if (event.type === 'message') {
     let text = event.message.text;
@@ -116,19 +58,17 @@ const message_trigger = async function (event, userId) {
       await Transfer.getBalanceByUserId(userId)
         .then((result) => {
           Canvas.pointBalance(event, client, result)
-
-          const pointCard = [
-            {
-              "type": "image",
-              "originalContentUrl": "https://example.com/original.jpg",
-              "previewImageUrl": "https://example.com/preview.jpg"
-            }
-          ];
-
         }).catch((err) => {
           console.log(err)
         });
-        
+
+      const pointCard = [
+        {
+          "type": "image",
+          "originalContentUrl": "https://example.com/original.jpg",
+          "previewImageUrl": "https://example.com/preview.jpg"
+        }
+      ];
     }
   }
 }

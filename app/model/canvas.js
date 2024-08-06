@@ -268,9 +268,9 @@ Canvas.pointBalance = function (event, client, result) {
         const profile = await client.getProfile(userId);
 
         const BalanceData = result.data.balance
+        console.log(BalanceData)
 
         console.log(profile)
-        console.log(BalanceData)
 
         if (!profile) {
             console.error('No profile data returned');
@@ -320,10 +320,10 @@ Canvas.pointBalance = function (event, client, result) {
 
                     ctx.drawImage(image, 0, 300, 1040, 468.13);
 
-                    const Point = BalanceData;
+                    const Point = BalanceData || 0;
 
                     ctx.fillStyle = '#fff'
-                    ctx.font = 'bold 300px Prompt'
+                    ctx.font = '300px Prompt'
                     ctx.fillText(`${Point}`, 520, 300)
 
                     // Save the canvas to a file

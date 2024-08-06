@@ -1,6 +1,5 @@
 const sql = require('../../configs/db');
 const Canvas = require('./Canvas');
-const LINE_SDK = require('./lineWebhook');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -115,8 +114,8 @@ Transfer.transferPoint = function (transferInput) {
             slip_url: transferInput.slip_url
         }
 
-        const sender = await LINE_SDK.getProfile(transferDb.sender_id)
-        const receiver = await LINE_SDK.getProfile(transferDb.receiver_id)
+        const sender = await Transfer.getProfile(transferDb.sender_id)
+        const receiver = await Transfer.getProfile(transferDb.receiver_id)
 
         let drawPlayLoad = {
             sender,
@@ -469,6 +468,41 @@ Transfer.voidEarn = function (voidInput) {
                 response.statusCode = 500;
                 reject(response);
             });
+    })
+}
+
+Transfer.getProfile = function (userId) {
+    return new Promise(async (resolve, reject) => {
+
+        try {
+            const response = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${lineConfig.channelAccessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json(); // The response is already parsed as an object
+            //console.log('data Profile:', data);
+
+            const user = {
+                userId: data.userId,
+                displayName: data.displayName,
+                pictureUrl: data.pictureUrl
+            }
+
+            //console.log('User Profile:', user);
+
+            resolve(user);
+
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            reject(error)
+        }
     })
 }
 
