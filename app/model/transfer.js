@@ -1,5 +1,5 @@
 const sql = require('../../configs/db');
-const Canvas = require('./canvas');
+const Canvas = require('./Canvas');
 
 var Transfer = function () {
     this.created_at = new Date()

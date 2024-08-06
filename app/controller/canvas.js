@@ -1,4 +1,4 @@
-const Canvas = require('../model/canvas');
+const Canvas = require('../model/Canvas');
 
 exports.pointBalance = async function (req, res) {
     const user_id = req.body.user_id
