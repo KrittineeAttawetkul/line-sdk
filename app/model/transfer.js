@@ -1,6 +1,7 @@
 const sql = require('../../configs/db');
 const Canvas = require('./Canvas');
 const lineConfig = require('../../configs/lineConfig');
+const { getProfile } = require('../../utils/getLinePofile');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -116,10 +117,10 @@ Transfer.transferPoint = function (transferInput) {
             receiver_slip_url: ''
         }
 
-        const sender = await Transfer.getProfile(transferDb.sender_id)
-        const receiver = await Transfer.getProfile(transferDb.receiver_id)
+        const sender = await getProfile(transferDb.sender_id)
+        const receiver = await getProfile(transferDb.receiver_id)
 
-        let drawPlayLoad = {
+        let drawPayLoad = {
             sender,
             receiver,
             transferInfo: transferInput
@@ -139,16 +140,16 @@ Transfer.transferPoint = function (transferInput) {
                     if (balanceData.balance >= transferDb.point_amount) {
 
                         if (transferDb.point_amount > 0) {
-                            
+
                             // Get slip URL from Canvas.transferSlip
-                            const transferSlipUrl = await Canvas.transferSlip(drawPlayLoad)
+                            const transferSlipUrl = await Canvas.transferSlip(drawPayLoad)
                             console.log(transferSlipUrl)
                             transferDb.transfer_slip_url = transferSlipUrl.data;
-                            
-                            const receiveSlipUrl = await Canvas.receiveSlip(drawPlayLoad)
+
+                            const receiveSlipUrl = await Canvas.receiveSlip(drawPayLoad)
                             console.log(receiveSlipUrl)
                             transferDb.receiver_slip_url = receiveSlipUrl.data;
-                            
+
                             const transfer =
                                 `INSERT INTO point_transfer SET ?`
                             sql.query(
@@ -229,7 +230,8 @@ Transfer.earnPoint = function (earnInput) {
             type: 'earn',
             point_amount: earnInput.point_amount,
             comment: earnInput.comment,
-            slip_url: earnInput.slip_url
+            transfer_slip_url: '',
+            receiver_slip_url: ''
         }
 
         if (earnDb.point_amount > 0) {
@@ -436,7 +438,8 @@ Transfer.voidEarn = function (voidInput) {
                         type: 'void',
                         point_amount: data[0].point_amount,
                         comment: voidInput.comment,
-                        slip_url: voidInput.slip_url
+                        transfer_slip_url: '',
+                        receiver_slip_url: ''
                     }
 
                     const vPoint = "INSERT INTO point_transfer SET ?";
@@ -477,40 +480,40 @@ Transfer.voidEarn = function (voidInput) {
     })
 }
 
-Transfer.getProfile = function (userId) {
-    return new Promise(async (resolve, reject) => {
+// Transfer.getProfile = function (userId) {
+//     return new Promise(async (resolve, reject) => {
 
-        try {
-            const response = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${lineConfig.channelAccessToken}`
-                }
-            });
+//         try {
+//             const response = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
+//                 method: 'GET',
+//                 headers: {
+//                     'Authorization': `Bearer ${lineConfig.channelAccessToken}`
+//                 }
+//             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+//             if (!response.ok) {
+//                 throw new Error(`HTTP error! Status: ${response.status}`);
+//             }
 
-            const data = await response.json(); // The response is already parsed as an object
-            //console.log('data Profile:', data);
+//             const data = await response.json(); // The response is already parsed as an object
+//             //console.log('data Profile:', data);
 
-            const user = {
-                userId: data.userId,
-                displayName: data.displayName,
-                pictureUrl: data.pictureUrl
-            }
+//             const user = {
+//                 userId: data.userId,
+//                 displayName: data.displayName,
+//                 pictureUrl: data.pictureUrl
+//             }
 
-            //console.log('User Profile:', user);
+//             //console.log('User Profile:', user);
 
-            resolve(user);
+//             resolve(user);
 
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-            reject(error)
-        }
-    })
-}
+//         } catch (error) {
+//             console.error('Error fetching user profile:', error);
+//             reject(error)
+//         }
+//     })
+// }
 
 
 
