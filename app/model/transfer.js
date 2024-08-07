@@ -1,5 +1,6 @@
 const sql = require('../../configs/db');
 const Canvas = require('./Canvas');
+const lineConfig = require('../../configs/lineConfig');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -111,7 +112,8 @@ Transfer.transferPoint = function (transferInput) {
             type: 'transfer',
             point_amount: transferInput.point_amount,
             comment: transferInput.comment,
-            slip_url: transferInput.slip_url
+            transfer_slip_url: '',
+            receiver_slip_url: ''
         }
 
         const sender = await Transfer.getProfile(transferDb.sender_id)
@@ -123,85 +125,89 @@ Transfer.transferPoint = function (transferInput) {
             transferInfo: transferInput
         }
 
-        await Transfer.getBalanceByUserId(transferDb.sender_id)
-            .then(result => {
-                let balanceData = result.data;
-                console.log(transferDb.sender_id, '-> Balance:', balanceData.balance)
+        try {
+            const balanceResult = await Transfer.getBalanceByUserId(transferDb.sender_id)
+            let balanceData = balanceResult.data;
+            console.log(transferDb.sender_id, '-> Balance:', balanceData.balance)
 
-                if (transferDb.sender_id !== transferDb.receiver_id) {
-                    console.log('diff user name')
+            if (transferDb.sender_id !== transferDb.receiver_id) {
+                console.log('diff user name')
 
-                    if (balanceData.balance > 0) {
+                if (balanceData.balance > 0) {
 
-                        // For example, check if point_amount to be transferred is less than or equal to the balance
-                        if (balanceData.balance >= transferDb.point_amount) {
+                    // For example, check if point_amount to be transferred is less than or equal to the balance
+                    if (balanceData.balance >= transferDb.point_amount) {
 
-                            if (transferDb.point_amount > 0) {
-                                const transfer =
-                                    `INSERT INTO point_transfer SET ?`
-
-                                sql.query(
-                                    transfer,
-                                    [transferDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                                    //call back function
-                                    (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
-                                        if (!err) {
-                                            if (results.affectedRows > 0) {
-                                                // If successful
-                                                response.data = { message: 'Transfer successful' };
-                                                Canvas.transferSlip(drawPlayLoad)
-                                                Canvas.receiveSlip(drawPlayLoad)
-                                                resolve(response);
-                                            } else {
-                                                // is not effective
-                                                response.status = false;
-                                                response.errMsg = 'บันทึกไม่สำเร็จ'
-                                                resolve(response);
-                                            }
+                        if (transferDb.point_amount > 0) {
+                            
+                            // Get slip URL from Canvas.transferSlip
+                            const transferSlipUrl = await Canvas.transferSlip(drawPlayLoad)
+                            console.log(transferSlipUrl)
+                            transferDb.transfer_slip_url = transferSlipUrl.data;
+                            
+                            const receiveSlipUrl = await Canvas.receiveSlip(drawPlayLoad)
+                            console.log(receiveSlipUrl)
+                            transferDb.receiver_slip_url = receiveSlipUrl.data;
+                            
+                            const transfer =
+                                `INSERT INTO point_transfer SET ?`
+                            sql.query(
+                                transfer,
+                                [transferDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                                //callback function
+                                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                                    if (!err) {
+                                        if (results.affectedRows > 0) {
+                                            // If successful
+                                            response.data = { message: 'Transfer successful' };
+                                            resolve(response);
                                         } else {
-                                            response["status"] = false;
-                                            response.errMsg = err;
-                                            reject(response);
+                                            // is not effective
+                                            response.status = false;
+                                            response.errMsg = 'บันทึกไม่สำเร็จ'
+                                            resolve(response);
                                         }
+                                    } else {
+                                        response["status"] = false;
+                                        response.errMsg = err;
+                                        reject(response);
                                     }
-                                )
-                            } else {
-                                console.log('point amount = 0')
-                                response.status = false;
-                                response.errMsg = 'point amount = 0';
-                                response.statusCode = 400;
-                                reject(response);
-                            }
+                                }
+                            )
                         } else {
-                            // Insufficient balance
+                            console.log('point amount = 0')
                             response.status = false;
-                            response.errMsg = 'Insufficient balance';
+                            response.errMsg = 'point amount = 0';
                             response.statusCode = 400;
                             reject(response);
                         }
                     } else {
-                        // Balance is not greater than 0
+                        // Insufficient balance
                         response.status = false;
-                        response.errMsg = 'Balance is not sufficient';
+                        response.errMsg = 'Insufficient balance';
                         response.statusCode = 400;
                         reject(response);
                     }
-                }
-                else {
-                    console.log('same user name')
+                } else {
+                    // Balance is not greater than 0
                     response.status = false;
-                    response.errMsg = 'Same user name';
+                    response.errMsg = 'Balance is not sufficient';
                     response.statusCode = 400;
                     reject(response);
                 }
-
-            })
-            .catch(err => {
+            } else {
+                console.log('same user name')
                 response.status = false;
-                response.errMsg = err.message || 'Error occurred';
-                response.statusCode = 500;
+                response.errMsg = 'Same user name';
+                response.statusCode = 400;
                 reject(response);
-            });
+            }
+        } catch (err) {
+            response.status = false;
+            response.errMsg = err.message || 'Error occurred';
+            response.statusCode = 500;
+            reject(response);
+        }
     })
 }
 

@@ -22,6 +22,9 @@ app.use(fileUpload());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'))
+app.use('/images', express.static('eSlip_images'));
+app.use('/images', express.static('pointCard_images'));
+
 app.use(cors());
 
 app.listen(port); // local

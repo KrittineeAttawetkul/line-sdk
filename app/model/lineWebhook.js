@@ -58,17 +58,29 @@ const message_trigger = async function (event, userId) {
       await Transfer.getBalanceByUserId(userId)
         .then((result) => {
           Canvas.pointBalance(event, client, result)
+            .then((response) => {
+              console.log(response)
+
+              const pointCard = [
+                {
+                  "type": "image",
+                  "originalContentUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_U4ed202ba32ea29aa7a38b04ae2efabae.png",
+                  "previewImageUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_U4ed202ba32ea29aa7a38b04ae2efabae.png"
+                }
+              ];
+
+              client.pushMessage(userId, pointCard)
+
+            }).catch((err) => {
+              console.log(err)
+            });
         }).catch((err) => {
           console.log(err)
         });
 
-      const pointCard = [
-        {
-          "type": "image",
-          "originalContentUrl": "https://example.com/original.jpg",
-          "previewImageUrl": "https://example.com/preview.jpg"
-        }
-      ];
+
+
+
     }
   }
 }

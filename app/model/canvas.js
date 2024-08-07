@@ -120,7 +120,10 @@ Canvas.transferSlip = function (transferInput) {
                     const streamFile = canvas.createPNGStream();
                     streamFile.pipe(outFile);
                     outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
-                    resolve()
+
+                    response.data = `/images/sender_${transferData.sender_id}.png`
+
+                    resolve(response)
                 })
                 .catch((err) => {
                     console.error('Failed to load images:', err);
@@ -243,7 +246,10 @@ Canvas.receiveSlip = function (receiveInput) {
                     const streamFile = canvas.createPNGStream();
                     streamFile.pipe(outFile);
                     outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
-                    resolve()
+
+                    response.data = `/images/receiver_${receiveData.receiver_id}.png`
+
+                    resolve(response)
                 })
                 .catch((err) => {
                     console.error('Failed to load images:', err);
@@ -332,13 +338,17 @@ Canvas.pointBalance = function (event, client, result) {
                     stream.pipe(pointout);
                     pointout.on('finish', () => console.log('The PointCard file was created.'));
 
-                    // // Save the canvas to a file with the current date as the name
-                    // const outPath = path.join(outputFile, `sender_${transferData.sender_id}.png`);
-                    // const outFile = fs.createWriteStream(outPath);
-                    // const streamFile = canvas.createPNGStream();
-                    // streamFile.pipe(outFile);
-                    // outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
-                    resolve()
+                    // Save the canvas to a file with the current date as the name
+                    const pointOut = path.join(outputFile, `pointCard_${userId}.png`);
+                    const outFile = fs.createWriteStream(pointOut);
+                    const streamFile = canvas.createPNGStream();
+                    streamFile.pipe(outFile);
+                    outFile.on('finish', () => console.log(`The PNG file was created at ${pointOut}`));
+
+                    response.data = `/images/pointCard_${userId}.png`
+
+                    resolve(response)
+                    
                 })
                 .catch((err) => {
                     console.error('Failed to load images:', err);
