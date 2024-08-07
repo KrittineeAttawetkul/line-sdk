@@ -348,7 +348,7 @@ Canvas.pointBalance = function (event, client, result) {
                     response.data = `/images/pointCard_${userId}.png`
 
                     resolve(response)
-                    
+
                 })
                 .catch((err) => {
                     console.error('Failed to load images:', err);
@@ -360,6 +360,142 @@ Canvas.pointBalance = function (event, client, result) {
 
     })
 }
+
+Canvas.earnSlip = function (earnInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        let earnData = {
+            sender_id: earnInput.transferInfo.sender_id,
+            receiver_id: earnInput.transferInfo.receiver_id,
+            point_amount: earnInput.transferInfo.point_amount,
+            receiver: earnInput.receiver
+        }
+
+        try {
+
+            if (!earnData.receiver) {
+                console.error('No profile data returned');
+                return;
+            }
+
+            const Date = timestamp()
+
+            // Register the custom font
+            const fontPrompt = path.join(__dirname, '../../assets/Prompt/Prompt-Bold.ttf');
+            registerFont(fontPrompt, { family: 'Prompt' });
+
+            const width = 1040
+            const height = 585
+            const canvas = createCanvas(width, height)
+            const ctx = canvas.getContext('2d')
+
+            ctx.fillStyle = '#fff'
+            ctx.fillRect(0, 0, width, height)
+            ctx.textAlign = 'right'
+            // ctx.textBaseline = 'top'
+
+            const receiver_name = earnData.receiver.displayName || 'Default Name';
+
+            ctx.fillStyle = '#000'
+            ctx.font = '46px Sans'
+            ctx.fillText(`${receiver_name}`, 450, 75)
+
+            ctx.fillStyle = '#D41C24'
+            ctx.font = '200px Prompt'
+            ctx.fillText(`${earnData.point_amount}`, 500, 400)
+
+            ctx.textAlign = 'center'
+
+            ctx.fillStyle = '#000'
+            ctx.font = '46px Prompt'
+            ctx.fillText(`ได้รับคะแนน`, 600, 75)
+
+
+            ctx.fillStyle = '#000'
+            ctx.font = '46px Prompt'
+            ctx.fillText(`ได้รับคะแนน`, 600, 75)
+
+            ctx.fillStyle = '#D41C24'
+            ctx.font = '100px Prompt'
+            ctx.fillText('Point', 650, 400)
+
+            ctx.fillStyle = '#555555'
+            ctx.font = '36px Prompt'
+            ctx.fillText(`${Date.timestampTH}`, 815, 540)
+
+            // const buffer = canvas.toBuffer('image/png')
+            // fs.writeFileSync('./output.png', buffer)
+
+            ctx.strokeStyle = '#C1C1C1'
+            ctx.beginPath()
+            ctx.lineTo(1000, 120)
+            ctx.lineTo(50, 120)
+            ctx.stroke()
+
+            // Function to draw a rounded image
+            function drawRoundedImage(ctx, image, x, y, width, height) {
+                const radius = Math.min(width, height) / 2;
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(image, x, y, width, height);
+                ctx.restore();
+            }
+
+            // Ensure the output directory exists
+            const outputDir = 'eSlip_images';
+            if (!fs.existsSync(outputDir)) {
+                fs.mkdirSync(outputDir);
+            }
+
+            const receiver_img = earnData.receiver.pictureUrl
+            const arrowPath = path.join(__dirname, '../../assets/receiveArrow.png');
+
+            Promise.all([loadImage(receiver_img), loadImage(arrowPath)])
+                .then(([receiver_img, arrowImg]) => {
+
+                    // Draw the image onto the canvas
+                    // drawRoundedImage(ctx, sender_img, 45, 210, 236, 236);
+
+                    // drawRoundedImage(ctx, receiver_img, 450, 210, 236, 236);
+
+                    // ctx.drawImage(arrowImg, 320, 310, 100, 40);
+
+                    // Save the canvas to a file
+                    const receiveOut = fs.createWriteStream('EarnSlip.png');
+                    const stream = canvas.createPNGStream();
+                    stream.pipe(receiveOut);
+                    receiveOut.on('finish', () => console.log('The EarnSlip file was created.'));
+
+                    // Save the canvas to a file with the current date as the name
+                    const outPath = path.join(outputDir, `earn_${earnData.receiver_id}.png`);
+                    const outFile = fs.createWriteStream(outPath);
+                    const streamFile = canvas.createPNGStream();
+                    streamFile.pipe(outFile);
+                    outFile.on('finish', () => console.log(`The PNG file was created at ${outPath}`));
+
+                    response.data = `/images/earn_${earnData.receiver_id}.png`
+
+                    resolve(response)
+                })
+                .catch((err) => {
+                    console.error('Failed to load images:', err);
+                    reject(err)
+                });
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
 
 function timestamp() {
     // Array of month names

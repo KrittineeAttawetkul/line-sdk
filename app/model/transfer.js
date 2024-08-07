@@ -234,7 +234,22 @@ Transfer.earnPoint = function (earnInput) {
             receiver_slip_url: ''
         }
 
+        const sender = await getProfile(earnDb.sender_id)
+        const receiver = await getProfile(earnDb.receiver_id)
+
+        let drawPayLoad = {
+            sender,
+            receiver,
+            transferInfo: earnInput
+        }
+
         if (earnDb.point_amount > 0) {
+
+            // Get slip URL from Canvas.transferSlip
+            const receiveSlipUrl = await Canvas.earnSlip(drawPayLoad)
+            console.log(receiveSlipUrl)
+            earnDb.receiver_slip_url = receiveSlipUrl.data;
+
             const earn =
                 `INSERT INTO point_transfer SET ?`
 

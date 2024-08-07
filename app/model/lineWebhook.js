@@ -64,8 +64,8 @@ const message_trigger = async function (event, userId) {
               const pointCard = [
                 {
                   "type": "image",
-                  "originalContentUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_U4ed202ba32ea29aa7a38b04ae2efabae.png",
-                  "previewImageUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_U4ed202ba32ea29aa7a38b04ae2efabae.png"
+                  "originalContentUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_${userId}.png",
+                  "previewImageUrl": "https://ba9b-1-20-91-118.ngrok-free.app/images/pointCard_${userId}.png"
                 }
               ];
 
