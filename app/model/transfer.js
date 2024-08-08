@@ -1,6 +1,9 @@
 const sql = require('../../configs/db');
+const { Client } = require('@line/bot-sdk');
 const lineConfig = require('../../configs/lineConfig');
+const client = new Client(lineConfig);
 const { getProfile } = require('../../utils/getLinePofile');
+const Flex = require('./flexMessage');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -225,6 +228,7 @@ Transfer.earnPoint = function (earnInput) {
 
             let drawPayLoad = {
                 receiver,
+                client:client,
                 transferInfo: earnInput
             }
 
@@ -242,6 +246,10 @@ Transfer.earnPoint = function (earnInput) {
                             if (results.affectedRows > 0) {
                                 // If successful
                                 response.data = { message: 'Earn successful' };
+
+                                Flex.earnSlip(drawPayLoad)
+
+
                                 resolve(response);
                             } else {
                                 // is not effective

@@ -55,12 +55,11 @@ const message_trigger = async function (event, userId, profile) {
     if (text === 'สมัครสมาชิก') {
       await Register.Registration(event, client)
     }
-    
+
     if (text === 'Check point') {
       await Transfer.getBalanceByUserId(userId)
         .then((result) => {
 
-          // const Data = result.data
           const Data = {
             balance: result.data.balance,
             profile: profile,
