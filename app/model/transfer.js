@@ -111,9 +111,7 @@ Transfer.transferPoint = function (transferInput) {
             receiver_id: transferInput.receiver_id,
             type: 'transfer',
             point_amount: transferInput.point_amount,
-            comment: transferInput.comment,
-            transfer_slip_url: '',
-            receiver_slip_url: ''
+            comment: transferInput.comment
         }
 
         const sender = await getProfile(transferDb.sender_id)
@@ -219,54 +217,54 @@ Transfer.earnPoint = function (earnInput) {
             receiver_id: earnInput.receiver_id,
             type: 'earn',
             point_amount: earnInput.point_amount,
-            comment: earnInput.comment,
-            transfer_slip_url: '',
-            receiver_slip_url: ''
+            comment: earnInput.comment
         }
+        try {
 
-        const sender = await getProfile(earnDb.sender_id)
-        const receiver = await getProfile(earnDb.receiver_id)
+            const receiver = await getProfile(earnDb.receiver_id)
 
-        let drawPayLoad = {
-            sender,
-            receiver,
-            transferInfo: earnInput
-        }
+            let drawPayLoad = {
+                receiver,
+                transferInfo: earnInput
+            }
 
-        if (earnDb.point_amount > 0) {
+            if (earnDb.point_amount > 0) {
 
-            const earn =
-                `INSERT INTO point_transfer SET ?`
+                const earn =
+                    `INSERT INTO point_transfer SET ?`
 
-            sql.query(
-                earn,
-                [earnDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                //call back function
-                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
-                    if (!err) {
-                        if (results.affectedRows > 0) {
-                            // If successful
-                            response.data = { message: 'Earn successful' };
-                            resolve(response);
+                sql.query(
+                    earn,
+                    [earnDb], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
+                    //call back function
+                    (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                        if (!err) {
+                            if (results.affectedRows > 0) {
+                                // If successful
+                                response.data = { message: 'Earn successful' };
+                                resolve(response);
+                            } else {
+                                // is not effective
+                                response.status = false;
+                                response.errMsg = 'บันทึกไม่สำเร็จ'
+                                resolve(response);
+                            }
                         } else {
-                            // is not effective
-                            response.status = false;
-                            response.errMsg = 'บันทึกไม่สำเร็จ'
-                            resolve(response);
+                            response["status"] = false;
+                            response.errMsg = err;
+                            reject(response);
                         }
-                    } else {
-                        response["status"] = false;
-                        response.errMsg = err;
-                        reject(response);
                     }
-                }
-            )
-        } else {
-            console.log('point amount = 0')
-            response.status = false;
-            response.errMsg = 'point amount = 0';
-            response.statusCode = 400;
-            reject(response);
+                )
+            } else {
+                console.log('point amount = 0')
+                response.status = false;
+                response.errMsg = 'point amount = 0';
+                response.statusCode = 400;
+                reject(response);
+            }
+        } catch (err) {
+            console.log(err)
         }
     })
 }
@@ -301,6 +299,7 @@ Transfer.voidPoint = function (voidInput) {
                     if (balanceData.balance >= voidInput.point_amount) {
 
                         if (voidInput.point_amount > 0) {
+
                             const vPoint =
                                 `INSERT INTO point_transfer SET ?`
 
@@ -438,8 +437,6 @@ Transfer.voidEarn = function (voidInput) {
                         type: 'void',
                         point_amount: data[0].point_amount,
                         comment: voidInput.comment,
-                        transfer_slip_url: '',
-                        receiver_slip_url: ''
                     }
 
                     const vPoint = "INSERT INTO point_transfer SET ?";
