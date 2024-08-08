@@ -120,7 +120,7 @@ Transfer.transferPoint = function (transferInput) {
         const sender = await getProfile(transferDb.sender_id)
         const receiver = await getProfile(transferDb.receiver_id)
 
-        let drawPayLoad = {
+        let slipPayLoad = {
             sender,
             receiver,
             transferInfo: transferInput
@@ -226,9 +226,9 @@ Transfer.earnPoint = function (earnInput) {
 
             const receiver = await getProfile(earnDb.receiver_id)
 
-            let drawPayLoad = {
+            let slipPayLoad = {
                 receiver,
-                client:client,
+                client: client,
                 transferInfo: earnInput
             }
 
@@ -246,10 +246,7 @@ Transfer.earnPoint = function (earnInput) {
                             if (results.affectedRows > 0) {
                                 // If successful
                                 response.data = { message: 'Earn successful' };
-
-                                Flex.earnSlip(drawPayLoad)
-
-
+                                Flex.earnSlip(slipPayLoad)
                                 resolve(response);
                             } else {
                                 // is not effective
@@ -294,6 +291,14 @@ Transfer.voidPoint = function (voidInput) {
             type: 'void',
         }
 
+        const sender = await getProfile(voidInput.sender_id)
+
+        let slipPayLoad = {
+            sender,
+            client: client,
+            transferInfo: voidInput
+        }
+
         Object.assign(voidInput, voidDb);
 
         await Transfer.getBalanceByUserId(voidInput.sender_id)
@@ -320,6 +325,7 @@ Transfer.voidPoint = function (voidInput) {
                                         if (results.affectedRows > 0) {
                                             // If successful
                                             response.data = { message: 'Void successful' };
+                                            Flex.voidSlip(slipPayLoad)
                                             resolve(response);
                                         } else {
                                             // is not effective

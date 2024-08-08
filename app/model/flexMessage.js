@@ -229,6 +229,138 @@ Flex.earnSlip = function (Data) {
 
 }
 
+Flex.voidSlip = function (Data) {
+
+    const Date = timestamp()
+
+    const voidSilp = [
+        {
+            "type": "flex",
+            "altText": "Image Bubble",
+            "contents": {
+                "type": "bubble",
+                "size": "giga",
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "image",
+                            "url": "https://7980-180-180-122-108.ngrok-free.app/images/PointBg.png",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "aspectRatio": "1:1",
+                            "gravity": "center"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": `-${Data.transferInfo.point_amount}`,
+                                    "size": "100px",
+                                    "weight": "bold",
+                                    "color": "#ffffff",
+                                    "offsetTop": "5px"
+                                }
+                            ],
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                            "position": "absolute",
+                            "width": "100%",
+                            "height": "100%"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": `${Data.sender.displayName}`,
+                                            "size": "30px",
+                                            "align": "center",
+                                            "color": "#333333"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "ถูกหักคะแนน",
+                                            "size": "25px",
+                                            "align": "center",
+                                            "color": "#333333"
+                                        }
+                                    ],
+                                    "paddingTop": "10px"
+                                }
+                            ],
+                            "position": "absolute",
+                            "width": "100%",
+                            "height": "30%",
+                            "justifyContent": "center",
+                            "alignItems": "center"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": `${Data.transferInfo.comment}`,
+                                    "size": "15px",
+                                    "wrap": true,
+                                    "color": "#666666"
+                                }
+                            ],
+                            "width": "100%",
+                            "height": "26%",
+                            "position": "absolute",
+                            "paddingAll": "15px",
+                            "offsetBottom": "5px",
+                            // "offsetStart": "10px",
+                            "justifyContent": "center"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": `${Date.timestampTH}`,
+                                    "align": "end",
+                                    "size": "12px",
+                                    "color": "#333333"
+                                }
+                            ],
+                            "width": "100%",
+                            "height": "10%",
+                            "position": "absolute",
+                            "offsetBottom": "0px",
+                            "offsetStart": "0px",
+                            "offsetEnd": "0px",
+                            "alignItems": "center",
+                            "paddingAll": "10px",
+                        }
+                    ],
+                    "paddingAll": "0px"
+                }
+            }
+        }
+    ]
+
+    Data.client.pushMessage(Data.sender.userId, voidSilp)
+
+}
+
 function timestamp() {
     // Array of month names
     const monthNames = [
