@@ -1,5 +1,4 @@
 const sql = require('../../configs/db');
-const Canvas = require('./Canvas');
 const lineConfig = require('../../configs/lineConfig');
 const { getProfile } = require('../../utils/getLinePofile');
 
@@ -141,15 +140,6 @@ Transfer.transferPoint = function (transferInput) {
 
                         if (transferDb.point_amount > 0) {
 
-                            // Get slip URL from Canvas.transferSlip
-                            const transferSlipUrl = await Canvas.transferSlip(drawPayLoad)
-                            console.log(transferSlipUrl)
-                            transferDb.transfer_slip_url = transferSlipUrl.data;
-
-                            const receiveSlipUrl = await Canvas.receiveSlip(drawPayLoad)
-                            console.log(receiveSlipUrl)
-                            transferDb.receiver_slip_url = receiveSlipUrl.data;
-
                             const transfer =
                                 `INSERT INTO point_transfer SET ?`
                             sql.query(
@@ -244,11 +234,6 @@ Transfer.earnPoint = function (earnInput) {
         }
 
         if (earnDb.point_amount > 0) {
-
-            // Get slip URL from Canvas.transferSlip
-            const receiveSlipUrl = await Canvas.earnSlip(drawPayLoad)
-            console.log(receiveSlipUrl)
-            earnDb.receiver_slip_url = receiveSlipUrl.data;
 
             const earn =
                 `INSERT INTO point_transfer SET ?`
