@@ -123,8 +123,11 @@ Transfer.transferPoint = function (transferInput) {
         let slipPayLoad = {
             sender,
             receiver,
-            transferInfo: transferInput
+            client: client,
+            transferInfo: transferInput,
+            invoiceNum: invoiceNum
         }
+
 
         try {
             const balanceResult = await Transfer.getBalanceByUserId(transferDb.sender_id)
@@ -152,6 +155,8 @@ Transfer.transferPoint = function (transferInput) {
                                         if (results.affectedRows > 0) {
                                             // If successful
                                             response.data = { message: 'Transfer successful' };
+                                            Flex.senderSlip(slipPayLoad)
+                                            Flex.receiverSlip(slipPayLoad)
                                             resolve(response);
                                         } else {
                                             // is not effective
@@ -229,7 +234,8 @@ Transfer.earnPoint = function (earnInput) {
             let slipPayLoad = {
                 receiver,
                 client: client,
-                transferInfo: earnInput
+                transferInfo: earnInput,
+                invoiceNum: invoiceNum
             }
 
             if (earnDb.point_amount > 0) {
@@ -296,7 +302,8 @@ Transfer.voidPoint = function (voidInput) {
         let slipPayLoad = {
             sender,
             client: client,
-            transferInfo: voidInput
+            transferInfo: voidInput,
+            invoiceNum: invoiceNum
         }
 
         Object.assign(voidInput, voidDb);
@@ -421,73 +428,79 @@ Transfer.voidEarn = function (voidInput) {
             statusCode: 200
         }
 
-        await Transfer.getDataByInvoiceNum(voidInput.invoice_num)
-            .then(result => {
-                let data = result.data;
-                console.log('Data', data)
+        try {
+            const result = await Transfer.getDataByInvoiceNum(voidInput.invoice_num);
+            let data = result.data;
+            console.log('Data', data);
 
-                let hasEarn = false;
-                let hasVoid = false;
+            const sender = await getProfile(data[0].receiver_id);
 
-                data.forEach(record => {
-                    if (record.type === 'earn') {
-                        hasEarn = true;
-                    }
-                    if (record.type === 'void') {
-                        hasVoid = true;
+            let hasEarn = false;
+            let hasVoid = false;
+
+            data.forEach(record => {
+                if (record.type === 'earn') {
+                    hasEarn = true;
+                }
+                if (record.type === 'void') {
+                    hasVoid = true;
+                }
+            });
+
+            if (hasVoid) {
+                response.status = false;
+                response.errMsg = 'Cannot void an already voided transaction';
+                response.statusCode = 400;
+                reject(response);
+            } else if (hasEarn) {
+                let voidDb = {
+                    invoice_num: data[0].invoice_num,
+                    sender_id: data[0].receiver_id,
+                    receiver_id: null,
+                    type: 'void',
+                    point_amount: data[0].point_amount,
+                    comment: voidInput.comment,
+                };
+
+                let slipPayLoad = {
+                    sender,
+                    client: client,
+                    transferInfo: voidInput,
+                    invoiceNum: data[0].invoice_num,
+                    point_amount:data[0].point_amount
+                };
+
+                const vPoint = "INSERT INTO point_transfer SET ?";
+
+                sql.query(vPoint, [voidDb], (err, results, fields) => {
+                    if (!err) {
+                        if (results.affectedRows > 0) {
+                            response.data = { message: 'Void successful' };
+                            Flex.voidSlip(slipPayLoad);
+                            resolve(response);
+                        } else {
+                            response.status = false;
+                            response.errMsg = 'บันทึกไม่สำเร็จ';
+                            resolve(response);
+                        }
+                    } else {
+                        response.status = false;
+                        response.errMsg = err;
+                        reject(response);
                     }
                 });
-
-                if (hasVoid) {
-                    response.status = false;
-                    response.errMsg = 'Cannot void an already voided transaction';
-                    response.statusCode = 400;
-                    reject(response);
-                } else if (hasEarn) {
-                    let voidDb = {
-                        invoice_num: data[0].invoice_num,
-                        sender_id: data[0].receiver_id,
-                        receiver_id: null,
-                        type: 'void',
-                        point_amount: data[0].point_amount,
-                        comment: voidInput.comment,
-                    }
-
-                    const vPoint = "INSERT INTO point_transfer SET ?";
-
-                    sql.query(
-                        vPoint,
-                        [voidDb],
-                        (err, results, fields) => {
-                            if (!err) {
-                                if (results.affectedRows > 0) {
-                                    response.data = { message: 'Void successful' };
-                                    resolve(response);
-                                } else {
-                                    response.status = false;
-                                    response.errMsg = 'บันทึกไม่สำเร็จ'
-                                    resolve(response);
-                                }
-                            } else {
-                                response["status"] = false;
-                                response.errMsg = err;
-                                reject(response);
-                            }
-                        }
-                    )
-                } else {
-                    response.status = false;
-                    response.errMsg = 'Not earn';
-                    response.statusCode = 400;
-                    reject(response);
-                }
-            })
-            .catch(err => {
+            } else {
                 response.status = false;
-                response.errMsg = err.message || 'Error occurred';
-                response.statusCode = 500;
+                response.errMsg = 'Not earn';
+                response.statusCode = 400;
                 reject(response);
-            });
+            }
+        } catch (err) {
+            response.status = false;
+            response.errMsg = err.message || 'Error occurred';
+            response.statusCode = 500;
+            reject(response);
+        }
     })
 }
 

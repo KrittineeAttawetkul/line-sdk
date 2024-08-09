@@ -56,7 +56,7 @@ const message_trigger = async function (event, userId, profile) {
       await Register.Registration(event, client)
     }
 
-    if (text === 'Check point') {
+    if (text === 'My Points') {
       await Transfer.getBalanceByUserId(userId)
         .then((result) => {
 
