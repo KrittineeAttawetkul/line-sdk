@@ -30,7 +30,7 @@ Flex.pointCard = function (Data) {
                             "contents": [
                                 {
                                     "type": "text",
-                                    "text": `${Data.balance}`,
+                                    "text": `${Data.balance ? Data.balance : 0}`,
                                     "size": "100px",
                                     "color": "#ffffff",
                                     "weight": "bold",
