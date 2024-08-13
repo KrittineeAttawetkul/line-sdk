@@ -28,7 +28,7 @@ LINE_SDK.Webhook = function (req) {
         const profile = await client.getProfile(userId);
 
         //console.log("Processing event:", event);
-        console.log(profile)
+        // console.log(profile)
 
         // type follow | member joined
         // if (event.type === 'follow' || event.type === 'memberJoined') {

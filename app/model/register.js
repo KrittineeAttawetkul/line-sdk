@@ -4,6 +4,7 @@ let response = {};
 const richmenu = require('../../configs/richmenu');
 
 const GenQr = require('./genQr');
+const Users = require('./users');
 
 var Register = function (user) {
     this.created_at = new Date();
@@ -16,7 +17,13 @@ Register.Registration = function (event, client) {
         // Reply กำลังดำเนินงาน
         // ----->
         // const replyToken = event.replyToken;
-      
+
+        const preMessage = [
+            {
+                type: 'text',
+                text: 'https://liff.line.me/2005813934-DyaeW1Z2'
+            }
+        ];
         const proMessage = [
             {
                 type: 'text',
@@ -24,14 +31,12 @@ Register.Registration = function (event, client) {
             }
         ];
 
-        // let preMessageRes = await client.replyMessage(replyToken, preMessage)
-        // console.log("preMessageRes: ", preMessageRes);
-        // await client.replyMessage(replyToken, preMessage)
         await loading(userId);
-        //<----------- API DATA BASE สร้าง model ใหม่
+
+        await client.pushMessage(userId, preMessage)
+
         await GenQr.Register(profile)
 
-        //console.log("replyToken: ", replyToken)
         await client.pushMessage(userId, proMessage)
         await client.linkRichMenuToUser(userId, richmenu.main);
         resolve();

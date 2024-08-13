@@ -2,7 +2,7 @@ var Flex = function (user) {
     this.created_at = new Date();
 };
 
-const url = 'https://5f9a-125-25-205-123.ngrok-free.app'
+const url = 'https://e6a8-182-52-129-170.ngrok-free.app'
 
 Flex.pointCard = function (Data) {
     const pointCard = [
