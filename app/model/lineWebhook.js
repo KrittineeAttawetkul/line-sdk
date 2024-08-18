@@ -52,9 +52,9 @@ const message_trigger = async function (event, userId, profile) {
   if (event.type === 'message') {
     let text = event.message.text;
 
-    if (text === 'สมัครสมาชิก') {
-      await Register.Registration(event, client)
-    }
+    // if (text === 'สมัครสมาชิก') {
+    //   await Register.Registration(event, client)
+    // }
 
     if (text === 'My Points') {
       await Transfer.getBalanceByUserId(userId)

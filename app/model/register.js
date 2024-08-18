@@ -17,13 +17,6 @@ Register.Registration = function (event, client) {
         // Reply กำลังดำเนินงาน
         // ----->
         // const replyToken = event.replyToken;
-
-        const preMessage = [
-            {
-                type: 'text',
-                text: 'https://liff.line.me/2005813934-DyaeW1Z2'
-            }
-        ];
         const proMessage = [
             {
                 type: 'text',
@@ -32,8 +25,6 @@ Register.Registration = function (event, client) {
         ];
 
         await loading(userId);
-
-        await client.pushMessage(userId, preMessage)
 
         await GenQr.Register(profile)
 
