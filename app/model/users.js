@@ -73,7 +73,6 @@ Users.checkTel = function (tel) {
                     else {
                         if (results.length > 0) {
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
-                            // console.log(results)
                         }
                         else {
                             response.errMsg = 'ไม่พบข้อมูลในระบบ คุณไม่ได้เป็นพนักงาน Nilecon'

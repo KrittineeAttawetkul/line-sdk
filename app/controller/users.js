@@ -1,5 +1,4 @@
 const Users = require('../model/users');
-const LineSDK = require('../model/lineWebhook.js');
 
 exports.getUserByUserId = async function (req, res) {
     const user_id = req.body.user_id
