@@ -1,5 +1,5 @@
 let richmenu = {
-    login: 'richmenu-42f2cb7453303e2c6a75d40428e5588f',
+    login: 'richmenu-d2359d8d3bab8a65c64c47bd3c8e3170',
     main: 'richmenu-c47514c726263aec15cdd234f77012f0'
 }
 

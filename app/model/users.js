@@ -75,7 +75,8 @@ Users.checkTel = function (tel) {
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
                         }
                         else {
-                            response.errMsg = 'ไม่พบข้อมูลในระบบ คุณไม่ได้เป็นพนักงาน Nilecon'
+                            response.errMsg = 'ไม่พบข้อมูลในระบบ'
+                            response["data"] /* รูปแบบที่ 2 */ = 'คุณไม่ได้เป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
                         }
                         resolve(response)
                     }
