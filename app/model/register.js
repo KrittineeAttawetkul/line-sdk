@@ -10,13 +10,18 @@ var Register = function (user) {
     this.created_at = new Date();
 };
 
-Register.Registration = function (userId, client) {
+Register.Registration = function (input, client) {
     return new Promise(async resolve => {
         // const userId = event.source.userId;
-        const profile = await client.getProfile(userId);
+        const profile = await client.getProfile(input.user_id);
         // Reply กำลังดำเนินงาน
         // ----->
         // const replyToken = event.replyToken;
+        const tel = {
+            tel: input.tel
+        }
+        Object.assign(profile, tel)
+
         const proMessage = [
             {
                 type: 'text',
@@ -24,12 +29,12 @@ Register.Registration = function (userId, client) {
             }
         ];
 
-        await loading(userId);
+        await loading(input.user_id);
 
         await GenQr.Register(profile)
 
-        await client.pushMessage(userId, proMessage)
-        await client.linkRichMenuToUser(userId, richmenu.main);
+        await client.pushMessage(input.user_id, proMessage)
+        await client.linkRichMenuToUser(input.user_id, richmenu.main);
         resolve();
     })
 }

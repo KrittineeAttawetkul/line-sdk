@@ -78,7 +78,7 @@ Users.checkTel = function (req) {
                     else {
                         if (results.length > 0) {
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
-                            Register.Registration(req.user_id,client)
+                            Register.Registration(req,client)
                         }
                         else {
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'

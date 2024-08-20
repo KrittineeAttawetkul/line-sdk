@@ -20,8 +20,11 @@ GenQr.Register = function (inputBody) {
             user_id: inputBody.userId,
             display_name: inputBody.displayName,
             picture_url: inputBody.pictureUrl,
-            status_message: inputBody.statusMessage
+            status_message: inputBody.statusMessage,
+            tel:inputBody.tel
         }
+
+        console.log(data)
 
         let fileName = `qrcode_${data.user_id}.png`
         let uploadDir = path.join(__dirname, '../../uploads');
