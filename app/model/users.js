@@ -61,7 +61,6 @@ Users.checkTel = function (req) {
         }
 
         const c = "SELECT * FROM nilecon_tel WHERE tel = ?"
-        console.log(req)
 
         try {
             sql.query(

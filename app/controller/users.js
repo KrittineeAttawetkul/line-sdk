@@ -15,7 +15,7 @@ exports.Register = async function (req, res) {
     await Users.checkTel(req.body)
         .then((response) => {
             res.status(response.statusCode).send(response)
-             console.log(response)
+            //  console.log(response)
         }).catch((err) => {
             res.status(400).send(err)
         });
