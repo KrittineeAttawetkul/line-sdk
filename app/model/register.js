@@ -1,18 +1,18 @@
 'use strict';
+
 const lineConfig = require('../../configs/lineConfig')
 let response = {};
 const richmenu = require('../../configs/richmenu');
 
 const GenQr = require('./genQr');
-const Users = require('./users');
 
 var Register = function (user) {
     this.created_at = new Date();
 };
 
-Register.Registration = function (event, client) {
+Register.Registration = function (userId, client) {
     return new Promise(async resolve => {
-        const userId = event.source.userId;
+        // const userId = event.source.userId;
         const profile = await client.getProfile(userId);
         // Reply กำลังดำเนินงาน
         // ----->

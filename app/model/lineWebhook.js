@@ -3,7 +3,6 @@
 const { Client } = require('@line/bot-sdk');
 const lineConfig = require('../../configs/lineConfig');
 const client = new Client(lineConfig);
-const richmenu = require('../../configs/richmenu');
 const Register = require('./register');
 const Transfer = require('./transfer');
 const Flex = require('./flexMessage');
@@ -16,7 +15,7 @@ LINE_SDK.Webhook = function (req) {
   return new Promise(async (resolve, reject) => {
     try {
       const events = req.body.events;
-      //console.log('events: ', events)
+      console.log('events: ', events)
 
       if (!events) {
         console.error("No events found in the request body.");
@@ -27,7 +26,7 @@ LINE_SDK.Webhook = function (req) {
         const userId = event.source.userId;
         const profile = await client.getProfile(userId);
 
-        //console.log("Processing event:", event);
+        console.log("Processing event:", event);
         // console.log(profile)
 
         // type follow | member joined
@@ -52,7 +51,7 @@ const message_trigger = async function (event, userId, profile) {
   if (event.type === 'message') {
     let text = event.message.text;
 
-    // if (text === 'สมัครสมาชิก') {
+    // if (text === 'คุณเป็นพนักงาน Nilecon') {
     //   await Register.Registration(event, client)
     // }
 

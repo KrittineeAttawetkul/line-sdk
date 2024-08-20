@@ -11,12 +11,11 @@ exports.getUserByUserId = async function (req, res) {
         });
 }
 
-exports.checkTel = async function (req, res) {
-    const tel = req.body.tel
-    console.log('tel: ', tel);
-    await Users.checkTel(tel)
+exports.Register = async function (req, res) {
+    await Users.checkTel(req.body)
         .then((response) => {
             res.status(response.statusCode).send(response)
+             console.log(response)
         }).catch((err) => {
             res.status(400).send(err)
         });
