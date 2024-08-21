@@ -15,7 +15,7 @@ LINE_SDK.Webhook = function (req) {
   return new Promise(async (resolve, reject) => {
     try {
       const events = req.body.events;
-      console.log('events: ', events)
+      // console.log('events: ', events)
 
       if (!events) {
         console.error("No events found in the request body.");
@@ -26,7 +26,7 @@ LINE_SDK.Webhook = function (req) {
         const userId = event.source.userId;
         const profile = await client.getProfile(userId);
 
-        console.log("Processing event:", event);
+        // console.log("Processing event:", event);
         // console.log(profile)
 
         // type follow | member joined

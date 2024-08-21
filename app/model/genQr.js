@@ -21,58 +21,71 @@ GenQr.Register = function (inputBody) {
             display_name: inputBody.displayName,
             picture_url: inputBody.pictureUrl,
             status_message: inputBody.statusMessage,
-            tel:inputBody.tel
-        }
+            tel: inputBody.tel
+        };
 
-        console.log(data)
+        // console.log(data);
 
-        let fileName = `qrcode_${data.user_id}.png`
+        let fileName = `qrcode_${data.user_id}.png`;
         let uploadDir = path.join(__dirname, '../../uploads');
         let pathUpload = path.join(uploadDir, fileName);
 
-        await GenQr.genFromUserId(data.user_id, pathUpload)
-            .then(response => {
-                let qrURL = { qr_url: '/images/' + fileName }
-                Object.assign(data, qrURL)
+        try {
+            await GenQr.genFromUserId(data.user_id, pathUpload);
+            let qrURL = { qr_url: '/images/' + fileName };
+            Object.assign(data, qrURL);
 
-                let check = "SELECT * FROM lineprofile WHERE user_id = ?"
-                let insert = 'INSERT INTO lineprofile SET ?';
+            let check = "SELECT * FROM lineprofile WHERE user_id = ? AND tel = ?";
+            let insert = 'INSERT INTO lineprofile SET ?';
 
-                sql.query(check, [data.user_id], (err, results) => {
+            sql.query(check, [data.user_id, data.tel], (err, results) => {
+                if (err) {
+                    return reject({
+                        status: false,
+                        errMsg: err.message
+                    });
+                }
+
+                if (results.length > 0) {
+                    console.log('User already exists');
+                    response.status = false;
+                    response.errMsg = 'User already exists.';
+                    return resolve(response); // Send response when duplicate is found
+                }
+
+                sql.query(insert, data, (err, results) => {
                     if (err) {
-                        reject(response);
-                    } else if (results.length > 0) {
-                        console.log('User already exists')
+                        if (err.code === 'ER_DUP_ENTRY') {
+                            response.status = false;
+                            response.errMsg = 'Duplicate entry detected.';
+                        } else {
+                            response.status = false;
+                            response.errMsg = err.message;
+                        }
+                        return reject(response);
+                    }
+
+                    if (results.affectedRows > 0) {
+                        resolve(response);
+                    } else {
+                        response.status = false;
+                        response.errMsg = 'Failed to save record.';
                         resolve(response);
                     }
-                    else {
-                        sql.query(insert, [data], (err, results) => {
-                            if (!err) {
-                                if (results.affectedRows > 0) {
-                                    resolve(response);
-                                } else {
-                                    // is not effective
-                                    response.status = false;
-                                    response.errMsg = 'บันทึกไม่สำเร็จ'
-                                    resolve(response);
-                                }
-                                //console.log('results: ', results);
-                            } else {
-                                //console.log('----------------- Register ------------------');
-                                //console.log('Error: ', err);
-                                response["status"] = false;
-                                response.errMsg = err;
-                                reject(response);
-                            }
-                        });
-                    }
-                })
-            })
-            .catch(err => {
-                reject(err);
-            })
-    })
+                });
+            });
+        } catch (err) {
+            reject({
+                status: false,
+                errMsg: err.message
+            });
+        }
+    });
 }
+
+process.on('unhandledRejection', (reason, promise) => {
+    // console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 GenQr.genFromUserId = function (user_id, pathUpload) {
     return new Promise(async (resolve, reject) => {
@@ -93,5 +106,7 @@ GenQr.genFromUserId = function (user_id, pathUpload) {
         });
     })
 }
+
+
 
 module.exports = GenQr;

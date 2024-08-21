@@ -52,7 +52,7 @@ Users.getUserByUserId = function (user_id) {
 }
 
 Users.checkTel = function (req) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         let response = {
             status: true,
             errMsg: '',
@@ -77,10 +77,18 @@ Users.checkTel = function (req) {
                     }
                     else {
                         if (results.length > 0) {
+                            response.status = true
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
-                            Register.Registration(req,client)
+
+                            Register.Registration(req, client).then(regResponse => {
+                                console.log('Register', regResponse);
+                            }).catch(regError => {
+                                console.error('Registration error:', regError);
+                            });
+
                         }
                         else {
+                            response.status = false
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณไม่ได้เป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
                             const Message = [
@@ -89,7 +97,7 @@ Users.checkTel = function (req) {
                                     text: 'คุณไม่ได้เป็นพนักงาน Nilecon'
                                 }
                             ];
-                            client.pushMessage(req.user_id, Message)
+                            // client.pushMessage(req.user_id, Message)
                         }
                         resolve(response)
                     }
