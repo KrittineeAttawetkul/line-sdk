@@ -19,6 +19,11 @@ Users.getUserByUserId = function (user_id) {
         }
 
         const s = "SELECT * FROM lineprofile WHERE user_id = ?"
+        // const s = `SELECT lp.*, clv.lv_name 
+        //     FROM lineprofile lp 
+        //     INNER JOIN card_lv clv ON 
+        //     WHERE user_id = ? 
+        // `
 
         try {
             sql.query(
@@ -67,7 +72,7 @@ Users.checkTel = function (req) {
                 c,
                 [req.tel], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
                 //call back function
-                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                async (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
                     if (err) {
                         console.log(err)
                         response.errMsg = err
@@ -75,30 +80,24 @@ Users.checkTel = function (req) {
                         response.statusCode = 500
                         reject(response)
                     }
+
+                    if (results.length > 0) {
+                        // response.status = true
+                        // response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
+
+                        await Register.Registration(req, client).then(regResponse => {
+                            console.log('Register', regResponse);
+                            resolve(regResponse)
+                        }).catch(regError => {
+                            console.error('Registration error:', regError);
+                            reject(regError)
+                        });
+                    }
                     else {
-                        if (results.length > 0) {
-                            response.status = true
-                            response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
 
-                            Register.Registration(req, client).then(regResponse => {
-                                console.log('Register', regResponse);
-                            }).catch(regError => {
-                                console.error('Registration error:', regError);
-                            });
-
-                        }
-                        else {
-                            response.status = false
-                            response.errMsg = 'ไม่พบข้อมูลในระบบ'
-                            response["data"] /* รูปแบบที่ 2 */ = 'คุณไม่ได้เป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
-                            const Message = [
-                                {
-                                    type: 'text',
-                                    text: 'คุณไม่ได้เป็นพนักงาน Nilecon'
-                                }
-                            ];
-                            // client.pushMessage(req.user_id, Message)
-                        }
+                        response.status = false
+                        response.errMsg = 'ไม่พบข้อมูลในระบบ'
+                        response["data"] /* รูปแบบที่ 2 */ = 'คุณไม่ได้เป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
                         resolve(response)
                     }
                 }

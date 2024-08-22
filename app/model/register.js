@@ -11,7 +11,7 @@ var Register = function (user) {
 };
 
 Register.Registration = function (input, client) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         // const userId = event.source.userId;
         const profile = await client.getProfile(input.user_id);
         // Reply กำลังดำเนินงาน
@@ -32,10 +32,20 @@ Register.Registration = function (input, client) {
         await loading(input.user_id);
 
         await GenQr.Register(profile)
-
-        await client.pushMessage(input.user_id, proMessage)
-        await client.linkRichMenuToUser(input.user_id, richmenu.main);
-        resolve();
+            .then((result) => {
+                console.log('GenQr')
+                if (result.status) {
+                    console.log('result True', result)
+                    client.pushMessage(input.user_id, proMessage)
+                    client.linkRichMenuToUser(input.user_id, richmenu.main);
+                    resolve(result)
+                } else {
+                    console.log('result False', result)
+                    resolve(result)
+                }
+            }).catch((err) => {
+                console.log(err)
+            });
     })
 }
 
