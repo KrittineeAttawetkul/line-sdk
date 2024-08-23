@@ -55,22 +55,22 @@ const message_trigger = async function (event, userId, profile) {
     //   await Register.Registration(event, client)
     // }
 
-    if (text === 'My Points') {
-      await Transfer.getBalanceByUserId(userId)
-        .then((result) => {
+    // if (text === 'My Points') {
+    //   await Transfer.getBalanceByUserId(userId)
+    //     .then((result) => {
 
-          const Data = {
-            balance: result.data.balance,
-            profile: profile,
-            client: client
-          }
+    //       const Data = {
+    //         balance: result.data.balance,
+    //         profile: profile,
+    //         client: client
+    //       }
 
-          Flex.pointCard(Data)
+    //       Flex.pointCard(Data)
 
-        }).catch((err) => {
-          console.log(err)
-        });
-    }
+    //     }).catch((err) => {
+    //       console.log(err)
+    //     });
+    // }
   }
 }
 
