@@ -2,7 +2,7 @@ var Flex = function (user) {
     this.created_at = new Date();
 };
 
-const url = 'https://a29e-125-25-205-153.ngrok-free.app'
+const url = 'nilecon-hr-api-git-master-krittinees-projects.vercel.app'
 
 Flex.pointCard = function (Data) {
     const pointCard = [
