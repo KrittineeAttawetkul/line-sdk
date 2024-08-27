@@ -2,7 +2,7 @@ var Flex = function (user) {
     this.created_at = new Date();
 };
 
-const url = 'https://b951-118-175-205-86.ngrok-free.app'
+const url = 'https://www.podsland.com:3998'
 
 Flex.pointCard = function (Data) {
     const pointCard = [

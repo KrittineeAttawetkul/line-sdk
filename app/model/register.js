@@ -25,19 +25,18 @@ Register.Registration = function (input, client) {
         const proMessage = [
             {
                 type: 'text',
-                text: 'ดำเนินการสำเร็จ'
+                text: 'ยินดีตอนรับเข้าสู่ระบบ'
             }
         ];
 
-        await loading(input.user_id);
-
         await GenQr.Register(profile)
-            .then((result) => {
+            .then(async (result) => {
                 console.log('GenQr')
                 if (result.status) {
                     console.log('result True', result)
-                    client.pushMessage(input.user_id, proMessage)
-                    client.linkRichMenuToUser(input.user_id, richmenu.main);
+                    await loading(input.user_id);
+                    await client.pushMessage(input.user_id, proMessage)
+                    await client.linkRichMenuToUser(input.user_id, richmenu.main);
                     resolve(result)
                 } else {
                     console.log('result False', result)
