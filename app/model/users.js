@@ -66,6 +66,7 @@ Users.checkTel = function (req) {
         }
 
         const c = "SELECT * FROM nilecon_tel WHERE tel = ?"
+        // console.log(c)
 
         try {
             sql.query(
@@ -74,7 +75,7 @@ Users.checkTel = function (req) {
                 //call back function
                 async (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
                     if (err) {
-                        console.log(err)
+                        console.log('checkTel =', err)
                         response.errMsg = err
                         response.status = false
                         response.statusCode = 500
@@ -83,9 +84,9 @@ Users.checkTel = function (req) {
                         if (results.length > 0) {
                             // response.status = true
                             // response["data"] /* รูปแบบที่ 2 */ = 'คุณเป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
-    
+
                             await Register.Registration(req, client).then(regResponse => {
-                                console.log('Register', regResponse);
+                                // console.log('Register', regResponse);
                                 resolve(regResponse)
                             }).catch(regError => {
                                 console.error('Registration error:', regError);
@@ -93,13 +94,13 @@ Users.checkTel = function (req) {
                             });
                         }
                         else {
-    
+
                             response.status = false
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
                             response["data"] /* รูปแบบที่ 2 */ = 'คุณไม่ได้เป็นพนักงาน Nilecon'; //ทำให้เป็๋น Obj
                             resolve(response)
                         }
-    
+
                     }
                 }
             )

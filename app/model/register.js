@@ -31,15 +31,15 @@ Register.Registration = function (input, client) {
 
         await GenQr.Register(profile)
             .then(async (result) => {
-                console.log('GenQr')
+                // console.log('GenQr')
                 if (result.status) {
-                    console.log('result True', result)
+                    // console.log('result True', result)
                     await loading(input.user_id);
                     await client.pushMessage(input.user_id, proMessage)
                     await client.linkRichMenuToUser(input.user_id, richmenu.main);
                     resolve(result)
                 } else {
-                    console.log('result False', result)
+                    // console.log('result False', result)
                     resolve(result)
                 }
             }).catch((err) => {

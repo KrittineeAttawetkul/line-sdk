@@ -41,13 +41,13 @@ var routes = require("./app/routes/route");
 app.use(express.json())
 const sql = require('./configs/db');
 
-sql.connect((err) => {
-    if (err) {
-        //console.log('Error connecting to MySQL database = ', err)
-        return;
-    }
-    console.log('MySQL successfully connected ')
-})
+// sql.connect((err) => {
+//     if (err) {
+//         //console.log('Error connecting to MySQL database = ', err)
+//         return;
+//     }
+//     console.log('MySQL successfully connected ')
+// })
 
 // const PORT = 6000
 // app.listen(PORT, () => //console.log(`Server is running on port ${PORT}`))
