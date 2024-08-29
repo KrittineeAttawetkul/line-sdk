@@ -3,7 +3,6 @@ const express = require("express"),
     bodyParser = require("body-parser");
 const https = require('https');
 const fs = require('fs');
-const { SSL_OPTION } = require('./utils/tsl')
 var cors = require('cors');
 const fileUpload = require('express-fileupload');
 
@@ -18,7 +17,6 @@ app.use((req, res, next) => {
     next();
 })
 
-const port = 3998;
 
 app.use(fileUpload());
 app.use(bodyParser.json());
@@ -28,19 +26,21 @@ app.use('/images', express.static('assets'));
 
 app.use(cors());
 
-// app.listen(port); // local
-
-https.createServer(SSL_OPTION, app).listen(port); // prod
-
+const port = 3998;
 console.log(`Server running at ${port}`);
 
+
+
 var routes = require("./app/routes/route");
-
-
-
 app.use(express.json())
-const sql = require('./configs/db');
 
+//---------------------prod---------------------
+const { SSL_OPTION } = require('./utils/tsl')
+https.createServer(SSL_OPTION, app).listen(port);
+
+//---------------------local---------------------
+const sql = require('./configs/db');
+// app.listen(port);
 // sql.connect((err) => {
 //     if (err) {
 //         //console.log('Error connecting to MySQL database = ', err)
