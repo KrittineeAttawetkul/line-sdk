@@ -13,7 +13,10 @@ module.exports = function (app) {
   app.route("/api/users").post(Users.getUserByUserId);
   app.route("/api/qr").post(Users.getQrByUserId);
   app.route("/api/register").post(Users.Register)
+
+
   app.route("/api/balance").post(Transfer.getBalanceByUserId);
+  app.route("/api/member").post(Transfer.getCardByUserId);
   app.route("/api/transfer").post(Transfer.transferPoint);
   app.route("/api/earn").post(Transfer.earnPoint);
   app.route("/api/void").post(Transfer.voidPoint);

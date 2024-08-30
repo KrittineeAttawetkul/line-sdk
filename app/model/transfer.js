@@ -14,14 +14,13 @@ Transfer.getBalanceByUserId = function (user_id) {
         let response = {
             status: true,
             errMsg: '',
-            data: [],
+            data: { balance: 0 },
             statusCode: 200
         }
 
         const balance =
 
             `SELECT
-                user_id,
                 SUM(point_amount) AS balance
             FROM
                 (
@@ -82,7 +81,7 @@ Transfer.getBalanceByUserId = function (user_id) {
                     }
                     else {
                         if (results.length > 0) {
-                            response["data"] /* รูปแบบที่ 2 */ = results[0]; //ทำให้เป็๋น Obj
+                            response.data = results[0]; //ทำให้เป็๋น Obj
                         }
                         else {
                             response.status = false
@@ -97,6 +96,65 @@ Transfer.getBalanceByUserId = function (user_id) {
         }
     })
 }
+
+Transfer.getCardByUserId = function (user_id) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        try {
+            // Fetch the user's balance
+            const result = await Transfer.getBalanceByUserId(user_id);
+            const balance = result.data.balance;
+
+            // Combined query to handle both within and beyond range cases
+            const cardQuery = `
+              (
+                SELECT lv_name, card_url
+                FROM card_lv
+                WHERE point_req_min <= ? AND point_req_max >= ?
+            )
+            UNION ALL
+            (
+                SELECT lv_name, card_url
+                FROM card_lv
+                WHERE point_req_max < ?
+                ORDER BY point_req_max DESC
+                LIMIT 1
+            )`;
+
+            sql.query(cardQuery, [balance, balance, balance], (err, results) => {
+                if (err) {
+                    response.status = false;
+                    response.errMsg = 'Database query error';
+                    response.statusCode = 500;
+                    console.error(err); // Better logging
+                    reject(response);
+                } else if (results.length > 0) {
+                    // Return the first result which will be either within range or the highest fallback
+                    response.data = results[0];
+                    response.data.balance = balance;
+                } else {
+                    // No card data found
+                    response.errMsg = 'No card data available for the given balance';
+                    response.statusCode = 404;
+                }
+                resolve(response);
+            });
+        } catch (err) {
+            response.status = false;
+            response.errMsg = 'An error occurred';
+            response.statusCode = 500;
+            console.error(err); // Better logging
+            reject(response);
+        }
+    });
+};
+
 
 Transfer.transferPoint = function (transferInput) {
     return new Promise(async (resolve, reject) => {
@@ -468,7 +526,7 @@ Transfer.voidEarn = function (voidInput) {
                     client: client,
                     transferInfo: voidInput,
                     invoiceNum: data[0].invoice_num,
-                    point_amount:data[0].point_amount
+                    point_amount: data[0].point_amount
                 };
 
                 const vPoint = "INSERT INTO point_transfer SET ?";
