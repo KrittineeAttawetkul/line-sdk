@@ -563,40 +563,25 @@ Transfer.voidEarn = function (voidInput) {
     })
 }
 
-// Transfer.getProfile = function (userId) {
-//     return new Promise(async (resolve, reject) => {
+Transfer.getProfile = function (input) {
+    return new Promise(async (resolve, reject) => {
 
-//         try {
-//             const response = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
-//                 method: 'GET',
-//                 headers: {
-//                     'Authorization': `Bearer ${lineConfig.channelAccessToken}`
-//                 }
-//             });
+        const user_id = input.user_id
 
-//             if (!response.ok) {
-//                 throw new Error(`HTTP error! Status: ${response.status}`);
-//             }
-
-//             const data = await response.json(); // The response is already parsed as an object
-//             //console.log('data Profile:', data);
-
-//             const user = {
-//                 userId: data.userId,
-//                 displayName: data.displayName,
-//                 pictureUrl: data.pictureUrl
-//             }
-
-//             //console.log('User Profile:', user);
-
-//             resolve(user);
-
-//         } catch (error) {
-//             console.error('Error fetching user profile:', error);
-//             reject(error)
-//         }
-//     })
-// }
+        try {
+            await getProfile(user_id)
+                .then((result) => {
+                    // console.log(result);
+                    resolve(result)
+                }).catch((err) => {
+                    console.log(err);
+                });
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            reject(error)
+        }
+    })
+}
 
 
 

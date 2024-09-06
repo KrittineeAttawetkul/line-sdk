@@ -77,3 +77,14 @@ exports.voidEarn = async function (req, res) {
             res.status(400).send(err)
         });
 }
+
+exports.getProfile = async function (req, res) {
+    const user_id = req.body
+    
+    await Transfer.getProfile(user_id)
+        .then((response) => {
+            res.send(response)
+        }).catch((err) => {
+            res.status(400).send(err)
+        });
+}

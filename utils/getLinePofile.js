@@ -28,7 +28,7 @@ async function getProfile(userId) {
         return user
 
     } catch (error) {
-        console.error('Error fetching user profile:', error);
+        // console.error('Error fetching user profile:', error);
     }
 }
 
