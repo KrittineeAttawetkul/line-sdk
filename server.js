@@ -34,12 +34,32 @@ console.log(`Server running at ${port}`);
 var routes = require("./app/routes/route");
 app.use(express.json())
 
+
+if (process.env.stage === 'dev') {
+
+    const sql = require('./configs/db');
+    app.listen(port);
+    sql.connect((err) => {
+        if (err) {
+            //console.log('Error connecting to MySQL database = ', err)
+            return;
+        }
+        console.log('MySQL successfully connected ')
+    })
+
+} else if (process.env.stage === 'prod') {
+
+    const { SSL_OPTION } = require('./utils/tsl')
+    https.createServer(SSL_OPTION, app).listen(port);
+
+}
+
 //---------------------prod---------------------
-const { SSL_OPTION } = require('./utils/tsl')
-https.createServer(SSL_OPTION, app).listen(port);
+// const { SSL_OPTION } = require('./utils/tsl')
+// https.createServer(SSL_OPTION, app).listen(port);
 
 //---------------------local---------------------
-const sql = require('./configs/db');
+// const sql = require('./configs/db');
 // app.listen(port);
 // sql.connect((err) => {
 //     if (err) {

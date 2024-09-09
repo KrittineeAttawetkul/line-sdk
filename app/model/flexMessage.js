@@ -112,99 +112,73 @@ Flex.earnSlip = function (Data) {
                     "contents": [
                         {
                             "type": "image",
-                            "url": `${url}/images/Nilecon_Logo.png`,
-                            "align": "start",
-                            "aspectRatio": "4:1",
-                            "size": "sm"
+                            "url": `${url}/images/slipBg.png`,
+                            "position": "absolute",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "offsetTop": "none",
+                            "offsetBottom": "none",
+                            "offsetStart": "none",
+                            "offsetEnd": "none"
                         },
                         {
                             "type": "text",
                             "text": "คุณได้รับคะแนน",
                             "weight": "bold",
-                            "size": "xl",
-                            "margin": "md",
+                            "color": "#444444",
+                            "size": "lg",
+                            "margin": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "sm",
                             "color": "#34A853"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "horizontal",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "จำนวนคะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": `${Data.transferInfo.point_amount} คะแนน`,
-                                            "size": "sm",
-                                            "color": "#111111",
-                                            "align": "end",
-                                            "weight": "bold"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "vertical",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "หมายเหตุ:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                    "type": "text",
-                                                    "text": `${Data.transferInfo.comment}`,
-                                                    "size": "sm",
-                                                    "color": "#333333",
-                                                    "align": "start",
-                                                    "wrap": true
-                                                }
-                                            ],
-                                            "paddingTop": "5px"
-                                        }
-                                    ],
-                                    "paddingTop": "2px"
-                                }
-                            ]
+                            "type": "text",
+                            "text": "หมายเหตุ:",
+                            "margin": "md",
+                            "size": "sm",
+                            "color": "#666666"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.comment}`,
+                            "color": "#333333",
+                            "wrap": true,
+                            "margin": "md",
+                            "size": "sm"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
                             "type": "box",
                             "layout": "horizontal",
-                            "margin": "lg",
+                            "margin": "md",
                             "contents": [
                                 {
                                     "type": "text",
                                     "text": "TRANSFER ID ",
-                                    "size": "xxs",
-                                    "color": "#aaaaaa"
+                                    "size": "xs",
+                                    "color": "#D4D6DA",
+                                    "flex": 0
                                 },
                                 {
                                     "type": "text",
                                     "text": `${Data.invoiceNum}`,
-                                    "color": "#aaaaaa",
-                                    "size": "xxs",
+                                    "color": "#D4D6DA",
+                                    "size": "xs",
                                     "align": "end"
                                 }
                             ]
@@ -240,99 +214,73 @@ Flex.voidSlip = function (Data) {
                     "contents": [
                         {
                             "type": "image",
-                            "url": `${url}/images/Nilecon_Logo.png`,
-                            "align": "start",
-                            "aspectRatio": "4:1",
-                            "size": "sm"
+                            "url": `${url}/images/slipBg.png`,
+                            "position": "absolute",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "offsetTop": "none",
+                            "offsetBottom": "none",
+                            "offsetStart": "none",
+                            "offsetEnd": "none"
                         },
                         {
                             "type": "text",
                             "text": "คุณถูกหักคะแนน",
                             "weight": "bold",
-                            "size": "xl",
-                            "margin": "md",
+                            "color": "#444444",
+                            "size": "lg",
+                            "margin": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "sm",
                             "color": "#FF1400"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "horizontal",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "จำนวนคะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": `${Data.transferInfo.point_amount ? Data.transferInfo.point_amount : Data.point_amount} คะแนน`,
-                                            "size": "sm",
-                                            "color": "#111111",
-                                            "align": "end",
-                                            "weight": "bold"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "vertical",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "หมายเหตุ:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                    "type": "text",
-                                                    "text": `${Data.transferInfo.comment}`,
-                                                    "size": "sm",
-                                                    "color": "#333333",
-                                                    "align": "start",
-                                                    "wrap": true
-                                                }
-                                            ],
-                                            "paddingTop": "5px"
-                                        }
-                                    ],
-                                    "paddingTop": "2px"
-                                }
-                            ]
+                            "type": "text",
+                            "text": "หมายเหตุ:",
+                            "margin": "md",
+                            "size": "sm",
+                            "color": "#666666"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.comment}`,
+                            "color": "#333333",
+                            "wrap": true,
+                            "margin": "md",
+                            "size": "sm"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
                             "type": "box",
                             "layout": "horizontal",
-                            "margin": "lg",
+                            "margin": "md",
                             "contents": [
                                 {
                                     "type": "text",
                                     "text": "TRANSFER ID ",
-                                    "size": "xxs",
-                                    "color": "#aaaaaa"
+                                    "size": "xs",
+                                    "color": "#D4D6DA",
+                                    "flex": 0
                                 },
                                 {
                                     "type": "text",
                                     "text": `${Data.invoiceNum}`,
-                                    "color": "#aaaaaa",
-                                    "size": "xxs",
+                                    "color": "#D4D6DA",
+                                    "size": "xs",
                                     "align": "end"
                                 }
                             ]
@@ -368,114 +316,80 @@ Flex.senderSlip = function (Data) {
                     "contents": [
                         {
                             "type": "image",
-                            "url": `${url}/images/Nilecon_Logo.png`,
-                            "align": "start",
-                            "aspectRatio": "4:1",
-                            "size": "sm"
+                            "url": `${url}/images/slipBg.png`,
+                            "position": "absolute",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "offsetTop": "none",
+                            "offsetBottom": "none",
+                            "offsetStart": "none",
+                            "offsetEnd": "none"
                         },
                         {
                             "type": "text",
                             "text": "คุณได้ให้คะแนน",
                             "weight": "bold",
-                            "size": "xl",
-                            "margin": "md",
+                            "color": "#444444",
+                            "size": "lg",
+                            "margin": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "sm",
                             "color": "#FF1400"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "contents": [
-                                {
-                                    "type": "text",
-                                    "text": `To: ${Data.receiver.displayName}`,
-                                    "size": "xs",
-                                    "color": "#444444",
-                                    "wrap": true,
-                                    "weight": "bold",
-                                    "margin": "md"
-                                }
-                            ]
+                            "type": "text",
+                            "text": `To: ${Data.receiver.displayName}`,
+                            "size": "sm",
+                            "margin": "sm",
+                            "weight": "bold"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "horizontal",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "จำนวนคะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": `${Data.transferInfo.point_amount} คะแนน`,
-                                            "size": "sm",
-                                            "color": "#111111",
-                                            "align": "end",
-                                            "weight": "bold"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "vertical",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "เหตุผลการให้คะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                    "type": "text",
-                                                    "text": `${Data.transferInfo.comment}`,
-                                                    "size": "sm",
-                                                    "color": "#333333",
-                                                    "align": "start",
-                                                    "wrap": true
-                                                }
-                                            ],
-                                            "paddingTop": "5px"
-                                        }
-                                    ],
-                                    "paddingTop": "2px"
-                                }
-                            ]
+                            "type": "text",
+                            "text": "เหตุผลการให้คะแนน:",
+                            "margin": "md",
+                            "size": "sm",
+                            "color": "#666666"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.comment}`,
+                            "color": "#333333",
+                            "wrap": true,
+                            "margin": "md",
+                            "size": "sm"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
                             "type": "box",
                             "layout": "horizontal",
-                            "margin": "lg",
+                            "margin": "md",
                             "contents": [
                                 {
                                     "type": "text",
                                     "text": "TRANSFER ID ",
-                                    "size": "xxs",
-                                    "color": "#aaaaaa"
+                                    "size": "xs",
+                                    "color": "#D4D6DA",
+                                    "flex": 0
                                 },
                                 {
                                     "type": "text",
                                     "text": `${Data.invoiceNum}`,
-                                    "color": "#aaaaaa",
-                                    "size": "xxs",
+                                    "color": "#D4D6DA",
+                                    "size": "xs",
                                     "align": "end"
                                 }
                             ]
@@ -511,114 +425,80 @@ Flex.receiverSlip = function (Data) {
                     "contents": [
                         {
                             "type": "image",
-                            "url": `${url}/images/Nilecon_Logo.png`,
-                            "align": "start",
-                            "aspectRatio": "4:1",
-                            "size": "sm"
+                            "url": `${url}/images/slipBg.png`,
+                            "position": "absolute",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "offsetTop": "none",
+                            "offsetBottom": "none",
+                            "offsetStart": "none",
+                            "offsetEnd": "none"
                         },
                         {
                             "type": "text",
                             "text": "คุณได้รับคะแนน",
                             "weight": "bold",
-                            "size": "xl",
-                            "margin": "md",
+                            "color": "#444444",
+                            "size": "lg",
+                            "margin": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "sm",
                             "color": "#34A853"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "contents": [
-                                {
-                                    "type": "text",
-                                    "text": `From: ${Data.sender.displayName}`,
-                                    "size": "xs",
-                                    "color": "#444444",
-                                    "wrap": true,
-                                    "weight": "bold",
-                                    "margin": "md"
-                                }
-                            ]
+                            "type": "text",
+                            "text": `From: ${Data.sender.displayName}`,
+                            "size": "sm",
+                            "margin": "sm",
+                            "weight": "bold"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "horizontal",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "จำนวนคะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": `${Data.transferInfo.point_amount} คะแนน`,
-                                            "size": "sm",
-                                            "color": "#111111",
-                                            "align": "end",
-                                            "weight": "bold"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "vertical",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "เหตุผลการให้คะแนน:",
-                                            "size": "sm",
-                                            "color": "#666666"
-                                        },
-                                        {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                    "type": "text",
-                                                    "text": `${Data.transferInfo.comment}`,
-                                                    "size": "sm",
-                                                    "color": "#333333",
-                                                    "align": "start",
-                                                    "wrap": true
-                                                }
-                                            ],
-                                            "paddingTop": "5px"
-                                        }
-                                    ],
-                                    "paddingTop": "2px"
-                                }
-                            ]
+                            "type": "text",
+                            "text": "เหตุผลการให้คะแนน:",
+                            "margin": "md",
+                            "size": "sm",
+                            "color": "#666666"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.comment}`,
+                            "color": "#333333",
+                            "wrap": true,
+                            "margin": "md",
+                            "size": "sm"
                         },
                         {
                             "type": "separator",
-                            "margin": "lg"
+                            "margin": "md",
+                            "color": "#D4D6DA"
                         },
                         {
                             "type": "box",
                             "layout": "horizontal",
-                            "margin": "lg",
+                            "margin": "md",
                             "contents": [
                                 {
                                     "type": "text",
                                     "text": "TRANSFER ID ",
-                                    "size": "xxs",
-                                    "color": "#aaaaaa"
+                                    "size": "xs",
+                                    "color": "#D4D6DA",
+                                    "flex": 0
                                 },
                                 {
                                     "type": "text",
                                     "text": `${Data.invoiceNum}`,
-                                    "color": "#aaaaaa",
-                                    "size": "xxs",
+                                    "color": "#D4D6DA",
+                                    "size": "xs",
                                     "align": "end"
                                 }
                             ]
