@@ -125,9 +125,17 @@ Transfer.getCardByUserId = function (user_id) {
                 WHERE point_req_max < ?
                 ORDER BY point_req_max DESC
                 LIMIT 1
+            )
+            UNION ALL
+            (
+                SELECT lv_name, card_url
+                FROM card_lv
+                WHERE point_req_min > ?
+                ORDER BY point_req_min ASC
+                LIMIT 1
             )`;
 
-            sql.query(cardQuery, [balance, balance, balance], (err, results) => {
+            sql.query(cardQuery, [balance, balance, balance, balance], (err, results) => {
                 if (err) {
                     response.status = false;
                     response.errMsg = 'Database query error';

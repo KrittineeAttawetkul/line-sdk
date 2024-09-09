@@ -134,7 +134,7 @@ Flex.earnSlip = function (Data) {
                             "text": `${Data.transferInfo.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
-                            "margin": "sm",
+                            "margin": "xs",
                             "color": "#34A853"
                         },
                         {
@@ -233,10 +233,10 @@ Flex.voidSlip = function (Data) {
                         },
                         {
                             "type": "text",
-                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "text": `${Data.transferInfo.point_amount ? Data.transferInfo.point_amount : Data.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
-                            "margin": "sm",
+                            "margin": "xs",
                             "color": "#FF1400"
                         },
                         {
@@ -338,7 +338,7 @@ Flex.senderSlip = function (Data) {
                             "text": `${Data.transferInfo.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
-                            "margin": "sm",
+                            "margin": "xs",
                             "color": "#FF1400"
                         },
                         {
@@ -447,7 +447,7 @@ Flex.receiverSlip = function (Data) {
                             "text": `${Data.transferInfo.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
-                            "margin": "sm",
+                            "margin": "xs",
                             "color": "#34A853"
                         },
                         {
