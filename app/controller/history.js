@@ -12,9 +12,3 @@ exports.getHistoryByUserId = async function (req, res) {
             res.status(400).send(err)
         });
 }
-
-pageNo = {
-    all: 0,
-    earn: 0,
-    burn: 0
-}
