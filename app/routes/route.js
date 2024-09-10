@@ -6,6 +6,7 @@ module.exports = function (app) {
   var lineSdk = require('../controller/lineWebhook');
   var Users = require('../controller/users');
   const Transfer = require('../controller/transfer');
+  const History = require('../controller/history');
 
   app.route("/api/test").get(test.Test);
   app.route("/webhook").post(lineSdk.Webhook);
@@ -23,4 +24,7 @@ module.exports = function (app) {
   app.route("/api/void").post(Transfer.voidPoint);
   app.route("/api/invoice").post(Transfer.getDataByInvoiceNum);
   app.route("/api/voidEarn").post(Transfer.voidEarn);
+
+
+  app.route("/api/history").post(History.getHistoryByUserId);
 }
