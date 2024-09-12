@@ -17,9 +17,29 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
         let limitEarn = (pageNo.earn * itemPerPage) - itemPerPage;
         let limitBurn = (pageNo.burn * itemPerPage) - itemPerPage;
 
-        const allHis = "SELECT *, CASE WHEN receiver_id = ? THEN 'earn' ELSE 'burn' END AS point_type FROM point_transfer WHERE sender_id = ? OR  receiver_id = ? LIMIT ?, ?"
-        const senderHis = "SELECT * FROM point_transfer WHERE sender_id = ? LIMIT ?, ?"
-        const receiverHis = "SELECT * FROM point_transfer WHERE receiver_id = ? LIMIT ?, ?"
+        const allHis = `
+            SELECT *, CASE 
+            WHEN receiver_id = ? THEN 'earn' 
+            ELSE 'burn' 
+            END AS point_type 
+            FROM point_transfer 
+            WHERE sender_id = ? OR receiver_id = ? 
+            ORDER BY transfer_at DESC
+            LIMIT ?, ?`;
+
+        const senderHis = `
+            SELECT *, 'burn' AS point_type 
+            FROM point_transfer 
+            WHERE sender_id = ? 
+            ORDER BY transfer_at DESC
+            LIMIT ?, ?`;
+
+        const receiverHis = `
+            SELECT *, 'earn' AS point_type 
+            FROM point_transfer 
+            WHERE receiver_id = ? 
+            ORDER BY transfer_at DESC
+            LIMIT ?, ?`;
 
         try {
             // 
@@ -38,6 +58,7 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
 
             resolve(response);
         } catch (err) {
+            console.log(err);
 
         }
 
