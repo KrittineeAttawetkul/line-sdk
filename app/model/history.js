@@ -1,4 +1,5 @@
 const sql = require('../../configs/db');
+const { getProfile } = require('../../utils/getLinePofile');
 
 
 var History = function () {
@@ -44,8 +45,8 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
         try {
             // 
             let allHisValue = await querySelector(allHis, [user_id, user_id, user_id, limitAll, itemPerPage])
-            let senderHisValue = await querySelector(senderHis, [user_id, limitEarn, itemPerPage])
-            let receiverHisValue = await querySelector(receiverHis, [user_id, limitBurn, itemPerPage])
+            let receiverHisValue = await querySelector(receiverHis, [user_id, limitEarn, itemPerPage])
+            let senderHisValue = await querySelector(senderHis, [user_id, limitBurn, itemPerPage])
 
             let historyPayload = {
                 all: allHisValue,
@@ -56,15 +57,54 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
 
             response["data"] = historyPayload;
 
+
+
+            const processTransaction = async (transaction) => {
+                if (transaction.point_type === 'earn') {
+                    // console.log(`Earned from: ${transaction.sender_id}, Amount: ${transaction.point_amount}`);
+                    if (transaction.sender_id != null) {
+                        const profile = await getProfile(transaction.sender_id);
+                        // console.log('earn profile', profile.displayName);
+                        // console.log('earn profile', profile.pictureUrl);
+
+                        // Add profile.pictureUrl to the transaction object
+                        transaction.displayName = profile.displayName;
+                        transaction.pictureUrl = profile.pictureUrl;
+                    }
+                    // else {
+                    //     transaction.sender_pictureUrl = null;
+                    // }
+                } else if (transaction.point_type === 'burn') {
+                    // console.log(`Burned to: ${transaction.receiver_id}, Amount: ${transaction.point_amount}`);
+                    if (transaction.receiver_id != null) {
+                        const profile = await getProfile(transaction.receiver_id);
+                        // console.log('burn profile', profile.pictureUrl);
+
+                        // Add profile.pictureUrl to the transaction object
+                        transaction.displayName = profile.displayName;
+                        transaction.pictureUrl = profile.pictureUrl;
+                    }
+                    // else {
+                    //     // Add profile.pictureUrl to the transaction object
+                    //     transaction.receiver_pictureUrl = null;
+                    // }
+                }
+            };
+
+            // Process all transactions in the 'all', 'earn', and 'burn' arrays
+            await Promise.all([
+                ...historyPayload.all.map(processTransaction),
+                ...historyPayload.earn.map(processTransaction),
+                ...historyPayload.burn.map(processTransaction)
+            ]);
+
+            // console.log(response.data);
+
             resolve(response);
         } catch (err) {
             console.log(err);
 
         }
-
-
-
-
     })
 }
 
