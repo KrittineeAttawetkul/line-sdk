@@ -1,5 +1,6 @@
 const sql = require('../../configs/db');
 const { getProfile } = require('../../utils/getLinePofile');
+const Transfer = require('../model/transfer');
 
 
 var History = function () {
@@ -25,21 +26,21 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
             END AS point_type 
             FROM point_transfer 
             WHERE sender_id = ? OR receiver_id = ? 
-            ORDER BY transfer_at DESC
+            ORDER BY transfer_at DESC 
             LIMIT ?, ?`;
 
         const senderHis = `
             SELECT *, 'burn' AS point_type 
             FROM point_transfer 
             WHERE sender_id = ? 
-            ORDER BY transfer_at DESC
+            ORDER BY transfer_at DESC 
             LIMIT ?, ?`;
 
         const receiverHis = `
             SELECT *, 'earn' AS point_type 
             FROM point_transfer 
             WHERE receiver_id = ? 
-            ORDER BY transfer_at DESC
+            ORDER BY transfer_at DESC 
             LIMIT ?, ?`;
 
         try {
@@ -107,6 +108,93 @@ History.getHistoryByUserId = function (user_id, pageNo, itemPerPage) {
         }
     })
 }
+
+History.balanceRanking = function () {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        const query = 'SELECT user_id FROM lineprofile';
+
+        try {
+            sql.query(
+                query,
+                [], // Empty array for placeholders if needed
+                async (err, results, fields) => {
+                    if (err) {
+                        console.log(err);
+                        response.errMsg = err;
+                        response.status = false;
+                        response.statusCode = 500;
+                        return reject(response);
+                    }
+
+                    if (results.length > 0) {
+                        try {
+                            // Fetch balances and display names for all users
+                            const usersWithBalances = await Promise.all(
+                                results.map(async (row) => {
+                                    const userId = row.user_id;
+                                    try {
+                                        const [balance, profile] = await Promise.all([
+                                            Transfer.getCardByUserId(userId), // Fetch balance
+                                            getProfile(userId) // Fetch profile (for displayName)
+                                        ]);
+                                        return {
+                                            userId,
+                                            status:balance.status,
+                                            balance:balance.data.balance,
+                                            lv_name:balance.data.lv_name,
+                                            displayName: profile.displayName // Add displayName to response
+                                        };
+                                    } catch (err) {
+                                        console.log(`Error fetching data for user ${userId}:`, err);
+                                        return { userId, balance: 0, displayName: 'Unknown' }; // Handle errors by returning default values
+                                    }
+                                })
+                            );
+
+                            // Sort users by balance (descending)
+                            usersWithBalances.sort((a, b) => {
+                                const balanceA = a.balance?.data?.balance || 0;
+                                const balanceB = b.balance?.data?.balance || 0;
+                                return balanceB - balanceA;
+                            });
+
+                            // Return only the top 5 users
+                            response.data = usersWithBalances.slice(0, 5);
+
+                            resolve(response);
+                        } catch (err) {
+                            console.log('Error processing balances:', err);
+                            response.errMsg = 'Error processing balances';
+                            response.status = false;
+                            response.statusCode = 500;
+                            reject(response);
+                        }
+                    } else {
+                        response.errMsg = 'ไม่พบข้อมูลในระบบ';
+                        response.statusCode = 404;
+                        resolve(response);
+                    }
+                }
+            );
+        } catch (err) {
+            console.log('SQL Query Error:', err);
+            response.errMsg = err;
+            response.status = false;
+            response.statusCode = 500;
+            reject(response);
+        }
+    });
+};
+
+
+
 
 function querySelector(sqlState, where = []) {
     return new Promise((resolve, reject) => {

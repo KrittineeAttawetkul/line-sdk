@@ -111,6 +111,12 @@ Transfer.getCardByUserId = function (user_id) {
             const result = await Transfer.getBalanceByUserId(user_id);
             const balance = result.data.balance;
 
+            // Check if balance is 0
+            if (balance === 0) {
+                response.status = false;
+                response.errMsg = 'Balance is zero';
+            }
+
             // Combined query to handle both within and beyond range cases
             const cardQuery = `
               (
@@ -162,6 +168,7 @@ Transfer.getCardByUserId = function (user_id) {
         }
     });
 };
+
 
 
 Transfer.transferPoint = function (transferInput) {

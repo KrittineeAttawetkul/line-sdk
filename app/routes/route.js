@@ -27,4 +27,9 @@ module.exports = function (app) {
 
 
   app.route("/api/history").post(History.getHistoryByUserId);
+  app.route("/api/ranking").post(History.balanceRanking);
+  
 }
+
+
+

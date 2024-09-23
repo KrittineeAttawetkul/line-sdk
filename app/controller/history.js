@@ -12,3 +12,12 @@ exports.getHistoryByUserId = async function (req, res) {
             res.status(400).send(err)
         });
 }
+
+exports.balanceRanking = async function (req, res) {
+    await History.balanceRanking(req.body)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(400).send(err)
+        });
+}
