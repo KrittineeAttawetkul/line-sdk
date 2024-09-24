@@ -146,9 +146,10 @@ History.balanceRanking = function () {
                                         ]);
                                         return {
                                             userId,
-                                            status:balance.status,
-                                            balance:balance.data.balance,
-                                            lv_name:balance.data.lv_name,
+                                            errMsg: balance.errMsg,
+                                            status: balance.status,
+                                            balance: balance.data.balance,
+                                            lv_name: balance.data.lv_name,
                                             displayName: profile.displayName // Add displayName to response
                                         };
                                     } catch (err) {
@@ -160,8 +161,8 @@ History.balanceRanking = function () {
 
                             // Sort users by balance (descending)
                             usersWithBalances.sort((a, b) => {
-                                const balanceA = a.balance?.data?.balance || 0;
-                                const balanceB = b.balance?.data?.balance || 0;
+                                const balanceA = a.balance || 0;
+                                const balanceB = b.balance || 0;
                                 return balanceB - balanceA;
                             });
 

@@ -113,7 +113,7 @@ Transfer.getCardByUserId = function (user_id) {
 
             // Check if balance is 0
             if (balance === 0) {
-                response.status = false;
+                // response.status = false;
                 response.errMsg = 'Balance is zero';
             }
 
