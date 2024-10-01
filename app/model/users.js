@@ -43,6 +43,7 @@ Users.getUserByUserId = function (user_id) {
                             response["data"] /* รูปแบบที่ 2 */ = results[0]; //ทำให้เป็๋น Obj
                         }
                         else {
+                            response.status = false
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
                         }
                         resolve(response)

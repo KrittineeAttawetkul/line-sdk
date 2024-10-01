@@ -6,6 +6,7 @@ const client = new Client(lineConfig);
 const Register = require('./register');
 const Transfer = require('./transfer');
 const Flex = require('./flexMessage');
+const Reward = require('./reward');
 
 var LINE_SDK = function (user) {
   this.created_at = new Date();
@@ -35,7 +36,7 @@ LINE_SDK.Webhook = function (req) {
 
         // type messasge
 
-        message_trigger(event, userId, profile)
+        message_trigger(event, userId)
 
       }
       resolve();
@@ -47,9 +48,13 @@ LINE_SDK.Webhook = function (req) {
   });
 }
 
-const message_trigger = async function (event, userId, profile) {
+const message_trigger = async function (event, userId) {
   if (event.type === 'message') {
     let text = event.message.text;
+
+    if (text === 'ของรางวัล') {
+      await Reward.rewardCarousel(userId, client)
+    }
 
     // if (text === 'คุณเป็นพนักงาน Nilecon') {
     //   await Register.Registration(event, client)

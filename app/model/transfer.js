@@ -4,6 +4,8 @@ const lineConfig = require('../../configs/lineConfig');
 const client = new Client(lineConfig);
 const { getProfile } = require('../../utils/getLinePofile');
 const Flex = require('./flexMessage');
+const Reward = require('./reward');
+const { status } = require('server/reply');
 
 var Transfer = function () {
     this.created_at = new Date()
@@ -394,8 +396,7 @@ Transfer.voidPoint = function (voidInput) {
 
                         if (voidInput.point_amount > 0) {
 
-                            const vPoint =
-                                `INSERT INTO point_transfer SET ?`
+                            const vPoint = `INSERT INTO point_transfer SET ?`
 
                             sql.query(
                                 vPoint,
@@ -452,6 +453,170 @@ Transfer.voidPoint = function (voidInput) {
     })
 }
 
+Transfer.Redeem = function (RedeemInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        // Fetch reward details by reward_id before processing the redemption
+        const reward = await Reward.getRewardByReward_id(RedeemInput.reward_id);
+
+        // Check if the reward exists
+        if (!reward.status) {
+            response.status = false;
+            response.errMsg = 'Invalid reward ID or reward not found';
+            response.statusCode = 404;
+            return reject(response);
+        }
+
+        // Check if the current date is within the reward's valid period (reward_start and reward_end)
+        const currentDate = new Date();
+        const rewardStart = new Date(reward.data.reward_start);
+        const rewardEnd = new Date(reward.data.reward_end);
+
+        if (currentDate < rewardStart || currentDate > rewardEnd) {
+            response.status = false;
+            response.errMsg = 'Reward redemption period has expired or has not started yet';
+            response.statusCode = 400;
+            return reject(response);
+        }
+
+        // Check if the reward has already been redeemed in the reward_history table
+        const rewardHistoryQuery = `SELECT * FROM reward_history WHERE reward_id = ?`;
+        sql.query(rewardHistoryQuery, [RedeemInput.reward_id], async (err, results) => {
+            if (err) {
+                response.status = false;
+                response.errMsg = 'Error checking reward history';
+                response.statusCode = 500;
+                return reject(response);
+            }
+
+            if (results.length > 0) {
+                // Reward has already been redeemed
+                response.status = false;
+                response.errMsg = 'Reward has already been redeemed';
+                response.statusCode = 400;
+                return reject(response);
+            }
+
+            // Continue with the redemption process if the reward hasn't been redeemed
+            const invoiceNum = generateInvoiceNumber();
+
+            let redeemDb = {
+                sender_id: RedeemInput.sender_id,
+                invoice_num: invoiceNum,
+                receiver_id: null,
+                point_amount: reward.data.reward_price,
+                comment: null,
+                type: 'redeem',
+            }
+
+            const sender = await getProfile(RedeemInput.sender_id);
+
+            let slipPayLoad = {
+                sender,
+                client: client,
+                transferInfo: RedeemInput,
+                invoiceNum: invoiceNum
+            }
+
+            Object.assign(RedeemInput, redeemDb);
+
+            // Continue with checking balance and point amount
+            await Transfer.getBalanceByUserId(RedeemInput.sender_id)
+                .then(result => {
+                    let balanceData = result.data;
+                    console.log(RedeemInput.sender_id, '-> Balance:', balanceData.balance);
+
+                    if (balanceData.balance > 0) {
+
+                        // Check if point_amount to be transferred is less than or equal to the balance
+                        if (balanceData.balance >= RedeemInput.point_amount) {
+
+                            if (RedeemInput.point_amount > 0) {
+
+                                const rPoint = `INSERT INTO point_transfer SET ?`;
+
+                                sql.query(rPoint, [redeemDb], (err, results, fields) => {
+                                    if (!err) {
+                                        if (results.affectedRows > 0) {
+                                            // Insert into reward_history after successful redeem
+                                            const rewardHistoryInsertQuery = `INSERT INTO reward_history SET ?`;
+
+                                            let rewardDb = {
+                                                user_id: RedeemInput.sender_id,
+                                                reward_id: RedeemInput.reward_id,
+                                                invoice_num: invoiceNum,
+                                                reward_status: 'n'
+                                            }
+
+                                            // console.log(rewardDb);
+
+                                            sql.query(rewardHistoryInsertQuery, rewardDb, (err, historyResult) => {
+                                                if (err) {
+                                                    response.status = false;
+                                                    response.errMsg = 'Error inserting into reward history';
+                                                    response.statusCode = 500;
+                                                    return reject(response);
+                                                }
+
+                                                if (historyResult.affectedRows > 0) {
+                                                    // Successfully inserted into reward_history
+                                                    response.data = { message: 'Redeem successful and added to reward history' };
+                                                    resolve(response);
+                                                } else {
+                                                    response.status = false;
+                                                    response.errMsg = 'Failed to add to reward history';
+                                                    return reject(response);
+                                                }
+                                            });
+                                        } else {
+                                            response.status = false;
+                                            response.errMsg = 'Transaction failed';
+                                            resolve(response);
+                                        }
+                                    } else {
+                                        response.status = false;
+                                        response.errMsg = err;
+                                        reject(response);
+                                    }
+                                });
+                            } else {
+                                console.log('point amount = 0');
+                                response.status = false;
+                                response.errMsg = 'Point amount cannot be 0';
+                                response.statusCode = 400;
+                                reject(response);
+                            }
+                        } else {
+                            // Insufficient balance
+                            response.status = false;
+                            response.errMsg = 'Insufficient balance';
+                            response.statusCode = 400;
+                            reject(response);
+                        }
+                    } else {
+                        // Balance is not greater than 0
+                        response.status = false;
+                        response.errMsg = 'Insufficient balance';
+                        response.statusCode = 400;
+                        reject(response);
+                    }
+                })
+                .catch(err => {
+                    response.status = false;
+                    response.errMsg = err.message || 'Error occurred';
+                    response.statusCode = 500;
+                    reject(response);
+                });
+        });
+    });
+}
+
 Transfer.getDataByInvoiceNum = function (invoice_num) {
     return new Promise((resolve, reject) => {
         let response = {
@@ -481,6 +646,7 @@ Transfer.getDataByInvoiceNum = function (invoice_num) {
                             response["data"] /* รูปแบบที่ 2 */ = results; //ทำให้เป็๋น Obj // Return all matching records
                         }
                         else {
+                            response.status = false
                             response.errMsg = 'ไม่พบข้อมูลในระบบ'
                         }
                         resolve(response)

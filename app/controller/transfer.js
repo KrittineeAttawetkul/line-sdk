@@ -54,6 +54,16 @@ exports.voidPoint = async function (req, res) {
             res.status(400).send(err)
         });
 }
+exports.Redeem = async function (req, res) {
+    const RedeemInput = req.body
+
+    await Transfer.Redeem(RedeemInput)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(400).send(err)
+        });
+}
 
 exports.getDataByInvoiceNum = async function (req, res) {
     const invoice_num = req.body.invoice_num
@@ -80,7 +90,7 @@ exports.voidEarn = async function (req, res) {
 
 exports.getProfile = async function (req, res) {
     const user_id = req.body
-    
+
     await Transfer.getProfile(user_id)
         .then((response) => {
             res.send(response)
