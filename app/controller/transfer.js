@@ -54,6 +54,7 @@ exports.voidPoint = async function (req, res) {
             res.status(400).send(err)
         });
 }
+
 exports.Redeem = async function (req, res) {
     const RedeemInput = req.body
 

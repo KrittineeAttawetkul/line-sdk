@@ -5,7 +5,6 @@ const client = new Client(lineConfig);
 const { getProfile } = require('../../utils/getLinePofile');
 const Flex = require('./flexMessage');
 const Reward = require('./reward');
-const { status } = require('server/reply');
 
 var Transfer = function () {
     this.created_at = new Date()
