@@ -189,7 +189,8 @@ Reward.rewardCarousel = function (userId, client) {
                                 },
                                 {
                                     "type": "text",
-                                    "text": `available ${product.available_amount}x`
+                                    "text": `Available: ${product.available_amount} items`,
+                                    "color": "#5A82E2",
                                 }
                             ]
                         },
@@ -219,22 +220,30 @@ Reward.rewardCarousel = function (userId, client) {
                     carouselContents.push({
                         "type": "bubble",
                         "size": "hecto",
+                        "hero": {
+                            "type": "image",
+                            "size": "full",
+                            "aspectRatio": "20:22",
+                            "aspectMode": "cover",
+                            "url": "https://developers-resource.landpress.line.me/fx/img/01_5_carousel.png"
+                        },
                         "body": {
                             "type": "box",
                             "layout": "vertical",
-                            "spacing": "sm",
                             "contents": [
                                 {
                                     "type": "button",
-                                    "flex": 1,
-                                    "gravity": "center",
                                     "action": {
                                         "type": "message",
                                         "label": "History",
                                         "text": "History"
-                                    }
+                                    },
+                                    "style": "primary",
+                                    "gravity": "center",
+                                    "color": "#5A82E2"
                                 }
-                            ]
+                            ],
+                            "justifyContent": "flex-end"
                         }
                     });
                 } else {
@@ -242,32 +251,41 @@ Reward.rewardCarousel = function (userId, client) {
                     carouselContents.push({
                         "type": "bubble",
                         "size": "hecto",
+                        "hero": {
+                            "type": "image",
+                            "size": "full",
+                            "aspectRatio": "20:17",
+                            "aspectMode": "cover",
+                            "url": "https://developers-resource.landpress.line.me/fx/img/01_5_carousel.png"
+                        },
                         "body": {
                             "type": "box",
                             "layout": "vertical",
-                            "spacing": "sm",
                             "contents": [
                                 {
                                     "type": "button",
-                                    "flex": 1,
-                                    "gravity": "center",
-                                    "action": {
-                                        "type": "message",
-                                        "label": "See more",
-                                        "text": "See more"
-                                    }
-                                },
-                                {
-                                    "type": "button",
-                                    "flex": 1,
-                                    "gravity": "center",
                                     "action": {
                                         "type": "message",
                                         "label": "History",
                                         "text": "History"
-                                    }
+                                    },
+                                    "style": "primary",
+                                    "gravity": "center",
+                                    "color": "#5A82E2"
+                                },
+                                {
+                                    "type": "button",
+                                    "action": {
+                                        "type": "message",
+                                        "label": "see more",
+                                        "text": "see more"
+                                    },
+                                    "style": "secondary",
+                                    "gravity": "center"
                                 }
-                            ]
+                            ],
+                            "justifyContent": "flex-end",
+                            "spacing": "md"
                         }
                     });
                 }
