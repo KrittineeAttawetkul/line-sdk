@@ -118,7 +118,6 @@ Reward.addReward = function (rewardInput) {
     });
 };
 
-
 Reward.rewardCarousel = function (userId, client) {
     return new Promise(async (resolve, reject) => {
         let response = {
@@ -129,15 +128,15 @@ Reward.rewardCarousel = function (userId, client) {
         };
 
         const s = `
-        SELECT rl.* 
+        SELECT rl.*, 
+               (rl.reward_amount - COALESCE(COUNT(rh.reward_id), 0)) AS available_amount
         FROM reward_list rl
-        LEFT JOIN reward_history rh 
-        ON rl.reward_id = rh.reward_id
+        LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
         WHERE rl.is_active = 1 
-        AND rl.reward_amount > 0  -- Ensure that only rewards with available stock are shown
-        AND rh.reward_id IS NULL  -- Ensure rewards aren't already redeemed by the user
+        AND rl.reward_amount > 0
         AND NOW() BETWEEN rl.reward_start AND rl.reward_end
-        LIMIT 3
+        GROUP BY rl.reward_id
+        HAVING available_amount > 0
         `;
 
         try {
@@ -152,17 +151,13 @@ Reward.rewardCarousel = function (userId, client) {
             });
 
             let message;
-            if (results.length > 0) {
-                const carouselContents = results.map(product => {
-                    // Check if reward_amount is 0
-                    if (product.reward_amount <= 0) {
-                        response.status = false;
-                        response.errMsg = `Reward ${product.reward_name} is no longer available.`;
-                        response.statusCode = 400;
-                        return reject(response);
-                    }
+            const availableRewards = results.filter(product => product.available_amount > 0);
 
-                    // Format Thai date
+            // Show only the first 3 rewards
+            const rewardsToShow = availableRewards.slice(0, 3);
+
+            if (rewardsToShow.length > 0) {
+                const carouselContents = rewardsToShow.map(product => {
                     const sqlDate = product.reward_end;
                     const thaiFormattedDate = formatThaiDate(sqlDate);
 
@@ -191,6 +186,10 @@ Reward.rewardCarousel = function (userId, client) {
                                 {
                                     "type": "text",
                                     "text": `หมดอายุ ${thaiFormattedDate}`
+                                },
+                                {
+                                    "type": "text",
+                                    "text": `available ${product.available_amount}x`
                                 }
                             ]
                         },
@@ -214,30 +213,65 @@ Reward.rewardCarousel = function (userId, client) {
                     };
                 });
 
-                // Add the "See more" button bubble at the end
-                carouselContents.push({
-                    "type": "bubble",
-                    "size": "hecto",
-                    "body": {
-                        "type": "box",
-                        "layout": "vertical",
-                        "spacing": "sm",
-                        "contents": [
-                            {
-                                "type": "button",
-                                "flex": 1,
-                                "gravity": "center",
-                                "action": {
-                                    "type": "message",
-                                    "label": "See more",
-                                    "text": "See more"
+                // Add button based on the number of available rewards
+                if (availableRewards.length <= 3) {
+                    // Add "History" button if 3 or fewer available rewards
+                    carouselContents.push({
+                        "type": "bubble",
+                        "size": "hecto",
+                        "body": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "button",
+                                    "flex": 1,
+                                    "gravity": "center",
+                                    "action": {
+                                        "type": "message",
+                                        "label": "History",
+                                        "text": "History"
+                                    }
                                 }
-                            }
-                        ]
-                    }
-                });
+                            ]
+                        }
+                    });
+                } else {
+                    // Add both "See more" and "History" buttons if more than 3 available rewards
+                    carouselContents.push({
+                        "type": "bubble",
+                        "size": "hecto",
+                        "body": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "button",
+                                    "flex": 1,
+                                    "gravity": "center",
+                                    "action": {
+                                        "type": "message",
+                                        "label": "See more",
+                                        "text": "See more"
+                                    }
+                                },
+                                {
+                                    "type": "button",
+                                    "flex": 1,
+                                    "gravity": "center",
+                                    "action": {
+                                        "type": "message",
+                                        "label": "History",
+                                        "text": "History"
+                                    }
+                                }
+                            ]
+                        }
+                    });
+                }
 
-                // The complete message object
                 message = {
                     type: "flex",
                     altText: "รายการของรางวัล",
@@ -247,7 +281,6 @@ Reward.rewardCarousel = function (userId, client) {
                     }
                 };
             } else {
-                // No rewards found
                 message = {
                     type: "flex",
                     altText: "ไม่พบรายการของรางวัล",
@@ -293,7 +326,6 @@ Reward.rewardCarousel = function (userId, client) {
         }
     });
 }
-
 
 Reward.getRewardByReward_id = function (reward_id) {
     return new Promise(async (resolve, reject) => {
