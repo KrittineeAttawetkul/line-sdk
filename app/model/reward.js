@@ -18,33 +18,25 @@ Reward.addReward = function (rewardInput) {
 
         // Helper function to convert date format from DD-MM-YYYY to YYYY-MM-DD
         function convertToMySQLDate(dateStr) {
-            // Split the input string into date and time parts
             const [datePart, timePart] = dateStr.split(',');
-
-            // Split the date part into day, month, and year
             const [day, month, year] = datePart.split('-');
 
-            // Initialize the new date variables
             let formattedDate = `${year}-${month}-${day}`;
             let formattedTime = timePart;
 
-            // Check if time is 24:00:00
+            // Handle the case for 24:00:00 time
             if (timePart === '24:00:00') {
-                // Increment the day by 1
                 const dateObj = new Date(`${year}-${month}-${day}T00:00:00`);
                 dateObj.setDate(dateObj.getDate() + 1);
 
-                // Update formattedDate to the new date
                 formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                 formattedTime = '00:00:00'; // Reset time to 00:00:00
             }
 
-            // Combine formatted date and time into MySQL DATETIME format
-            const mysqlDateTime = `${formattedDate} ${formattedTime}`;
-
-            return mysqlDateTime;
+            return `${formattedDate} ${formattedTime}`;
         }
 
+        // Date conversion for reward start and end
         if (rewardInput.reward_start) {
             rewardInput.reward_start = convertToMySQLDate(rewardInput.reward_start);
         }
@@ -53,7 +45,20 @@ Reward.addReward = function (rewardInput) {
             rewardInput.reward_end = convertToMySQLDate(rewardInput.reward_end);
         }
 
-        // Check if reward_start is after reward_end including time
+        const currentDate = new Date();
+
+        // Check if reward_end is before the current date and time
+        if (rewardInput.reward_end) {
+            const endDate = new Date(rewardInput.reward_end);
+            if (endDate < currentDate) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_end cannot be before the current date and time'
+                });
+            }
+        }
+
+        // Check if reward_start is after or at the same time as reward_end
         if (rewardInput.reward_start && rewardInput.reward_end) {
             const startDate = new Date(rewardInput.reward_start);
             const endDate = new Date(rewardInput.reward_end);
@@ -63,7 +68,28 @@ Reward.addReward = function (rewardInput) {
                     status: false,
                     errMsg: 'reward_start cannot be after reward_end'
                 });
+            } else if (startDate.getTime() === endDate.getTime()) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_start and reward_end cannot be at the same time'
+                });
             }
+        }
+
+        // Check if reward_amount is 0 or less than 0
+        if (!rewardInput.reward_amount || rewardInput.reward_amount <= 0) {
+            return reject({
+                status: false,
+                errMsg: 'reward_amount must be greater than 0'
+            });
+        }
+
+        // Check if reward_price is lower than 0
+        if (rewardInput.reward_price < 0) {
+            return reject({
+                status: false,
+                errMsg: 'reward_price cannot be lower than 0'
+            });
         }
 
         const r = 'INSERT INTO reward_list SET ?';
@@ -102,8 +128,17 @@ Reward.rewardCarousel = function (userId, client) {
             statusCode: 200
         };
 
-        // Updated SQL query to select only active rewards
-        const s = 'SELECT * FROM reward_list WHERE is_active = 1 LIMIT 3';
+        const s = `
+        SELECT rl.* 
+        FROM reward_list rl
+        LEFT JOIN reward_history rh 
+        ON rl.reward_id = rh.reward_id
+        WHERE rl.is_active = 1 
+        AND rl.reward_amount > 0  -- Ensure that only rewards with available stock are shown
+        AND rh.reward_id IS NULL  -- Ensure rewards aren't already redeemed by the user
+        AND NOW() BETWEEN rl.reward_start AND rl.reward_end
+        LIMIT 3
+        `;
 
         try {
             const results = await new Promise((resolve, reject) => {
@@ -119,7 +154,15 @@ Reward.rewardCarousel = function (userId, client) {
             let message;
             if (results.length > 0) {
                 const carouselContents = results.map(product => {
+                    // Check if reward_amount is 0
+                    if (product.reward_amount <= 0) {
+                        response.status = false;
+                        response.errMsg = `Reward ${product.reward_name} is no longer available.`;
+                        response.statusCode = 400;
+                        return reject(response);
+                    }
 
+                    // Format Thai date
                     const sqlDate = product.reward_end;
                     const thaiFormattedDate = formatThaiDate(sqlDate);
 
@@ -203,15 +246,8 @@ Reward.rewardCarousel = function (userId, client) {
                         contents: carouselContents
                     }
                 };
-            }
-            else {
-                // message = [
-                //     {
-                //         "type": "text",
-                //         "text": "ไม่พบรายการของรางวัล"
-                //     }
-                // ];
-
+            } else {
+                // No rewards found
                 message = {
                     type: "flex",
                     altText: "ไม่พบรายการของรางวัล",
@@ -258,6 +294,7 @@ Reward.rewardCarousel = function (userId, client) {
     });
 }
 
+
 Reward.getRewardByReward_id = function (reward_id) {
     return new Promise(async (resolve, reject) => {
         let response = {
@@ -267,38 +304,44 @@ Reward.getRewardByReward_id = function (reward_id) {
             statusCode: 200
         };
 
-        // Updated SQL query to select only active rewards
-        const s = 'SELECT * FROM reward_list WHERE reward_id = ? AND is_active = 1';
+        // Single SQL statement to get reward and count how many times it has been redeemed
+        const s = `
+            SELECT rl.*, 
+                   (rl.reward_amount - IFNULL(COUNT(rh.reward_id), 0)) AS available_reward_amount
+            FROM reward_list rl
+            LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+            WHERE rl.reward_id = ? 
+            AND rl.is_active = 1
+            GROUP BY rl.reward_id
+            HAVING available_reward_amount > 0;
+        `;
 
         try {
-            sql.query(
-                s,
-                [reward_id], // parameter to search by reward_id
-                // callback function
-                (err, results, fields) => { // results is an array
-                    if (err) {
-                        console.log(err);
-                        response.errMsg = err;
+            sql.query(s, [reward_id], (err, results, fields) => {
+                if (err) {
+                    console.log(err);
+                    response.errMsg = err;
+                    response.status = false;
+                    response.statusCode = 500;
+                    reject(response);
+                } else {
+                    if (results.length > 0) {
+                        response["data"] = results[0]; // Return the reward data with available reward amount
+                        resolve(response);
+                    } else {
                         response.status = false;
-                        response.statusCode = 500;
-                        reject(response);
-                    }
-                    else {
-                        if (results.length > 0) {
-                            response["data"] = results[0]; // Convert to object
-                        } else {
-                            response.status = false;
-                            response.errMsg = 'ไม่พบข้อมูลในระบบ'; // "No data found in the system"
-                        }
+                        response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
+                        response.statusCode = 400;
                         resolve(response);
                     }
                 }
-            );
+            });
         } catch (err) {
             reject(err);
         }
     });
-}
+};
+
 
 
 
