@@ -1,3 +1,7 @@
+# Ignore specific files
+utils/fullchain.pem
+utils/private.key
+
 # Node.js
 node_modules/
 npm-debug.log
