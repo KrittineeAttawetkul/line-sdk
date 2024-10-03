@@ -336,7 +336,8 @@ Reward.getRewardByReward_id = function (reward_id) {
             statusCode: 200
         };
 
-        // Single SQL statement to get reward and count how many times it has been redeemed
+        // SQL statement to get reward, count how many times it has been redeemed,
+        // and check if it is within the start and end date
         const s = `
             SELECT rl.*, 
                    (rl.reward_amount - IFNULL(COUNT(rh.reward_id), 0)) AS available_reward_amount
@@ -344,8 +345,7 @@ Reward.getRewardByReward_id = function (reward_id) {
             LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
             WHERE rl.reward_id = ? 
             AND rl.is_active = 1
-            GROUP BY rl.reward_id
-            HAVING available_reward_amount > 0;
+            GROUP BY rl.reward_id;
         `;
 
         try {
@@ -358,12 +358,34 @@ Reward.getRewardByReward_id = function (reward_id) {
                     reject(response);
                 } else {
                     if (results.length > 0) {
-                        response["data"] = results[0]; // Return the reward data with available reward amount
-                        resolve(response);
+                        const reward = results[0];
+                        const currentDate = new Date();
+
+                        // Check if the reward is valid based on date
+                        if (currentDate < new Date(reward.reward_start)) {
+                            response.status = false;
+                            response.errMsg = 'รางวัลนี้ยังไม่เริ่ม'; // "This reward has not started yet"
+                            response.statusCode = 400;
+                            resolve(response);
+                        } else if (currentDate > new Date(reward.reward_end)) {
+                            response.status = false;
+                            response.errMsg = 'รางวัลนี้หมดอายุแล้ว'; // "This reward has expired"
+                            response.statusCode = 400;
+                            resolve(response);
+                        } else if (reward.available_reward_amount <= 0) {
+                            response.status = false;
+                            response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
+                            response.statusCode = 400;
+                            resolve(response);
+                        } else {
+                            response.data = reward; // Return the reward data with available reward amount
+                            resolve(response);
+                        }
                     } else {
+                        // Check if the reward is not found
                         response.status = false;
-                        response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
-                        response.statusCode = 400;
+                        response.errMsg = 'ไม่พบรางวัลนี้'; // "Reward not found"
+                        response.statusCode = 404;
                         resolve(response);
                     }
                 }
@@ -373,7 +395,6 @@ Reward.getRewardByReward_id = function (reward_id) {
         }
     });
 };
-
 
 
 
