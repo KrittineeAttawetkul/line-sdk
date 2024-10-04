@@ -299,6 +299,108 @@ Flex.voidSlip = function (Data) {
     Data.client.pushMessage(Data.sender.userId, voidSilp)
 }
 
+Flex.redeemSlip = function (Data) {
+
+    const Date = timestamp()
+
+    const voidSilp = [
+        {
+            "type": "flex",
+            "altText": "คุณได้แลกของรางวัล",
+            "contents": {
+                "type": "bubble",
+                "size": "kilo",
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "image",
+                            "url": `${url}/images/slipBg.png`,
+                            "position": "absolute",
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "offsetTop": "none",
+                            "offsetBottom": "none",
+                            "offsetStart": "none",
+                            "offsetEnd": "none"
+                        },
+                        {
+                            "type": "text",
+                            "text": "คุณได้แลกของรางวัล",
+                            "weight": "bold",
+                            "color": "#444444",
+                            "size": "lg",
+                            "margin": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.transferInfo.point_amount ? Data.transferInfo.point_amount : Data.point_amount} คะแนน`,
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "xs",
+                            "color": "#FF1400"
+                        },
+                        {
+                            "type": "separator",
+                            "margin": "md",
+                            "color": "#D4D6DA"
+                        },
+                        {
+                            "type": "text",
+                            "text": "ของรางวัล:",
+                            "margin": "md",
+                            "size": "sm",
+                            "color": "#666666"
+                        },
+                        {
+                            "type": "text",
+                            "text": `${Data.reward_name}`,
+                            "color": "#333333",
+                            "wrap": true,
+                            "margin": "md",
+                            "size": "sm"
+                        },
+                        {
+                            "type": "separator",
+                            "margin": "md",
+                            "color": "#D4D6DA"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "margin": "md",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "TRANSFER ID ",
+                                    "size": "xs",
+                                    "color": "#D4D6DA",
+                                    "flex": 0
+                                },
+                                {
+                                    "type": "text",
+                                    "text": `${Data.invoiceNum}`,
+                                    "color": "#D4D6DA",
+                                    "size": "xs",
+                                    "align": "end"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "styles": {
+                    "footer": {
+                        "separator": true
+                    }
+                }
+            }
+        }
+    ]
+
+    Data.client.pushMessage(Data.sender.userId, voidSilp)
+}
+
 Flex.senderSlip = function (Data) {
 
     const Date = timestamp()

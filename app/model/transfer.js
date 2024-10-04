@@ -464,44 +464,35 @@ Transfer.Redeem = function (RedeemInput) {
         // Fetch reward details by reward_id before processing the redemption
         const reward = await Reward.getRewardByReward_id(RedeemInput.reward_id);
 
-        // Check if the reward exists
         if (!reward.status) {
-            response.status = false;
-            response.errMsg = 'Invalid reward ID or reward not found';
-            response.statusCode = 404;
-            return reject(response);
-        }
-
-        // Check if the current date is within the reward's valid period (reward_start and reward_end)
-        const currentDate = new Date();
-        const rewardStart = new Date(reward.data.reward_start);
-        const rewardEnd = new Date(reward.data.reward_end);
-
-        if (currentDate < rewardStart || currentDate > rewardEnd) {
-            response.status = false;
-            response.errMsg = 'Reward redemption period has expired or has not started yet';
-            response.statusCode = 400;
-            return reject(response);
-        }
-
-        // Check if the reward has already been redeemed in the reward_history table
-        const rewardHistoryQuery = `SELECT * FROM reward_history WHERE reward_id = ?`;
-        sql.query(rewardHistoryQuery, [RedeemInput.reward_id], async (err, results) => {
-            if (err) {
+            if (reward.errMsg === 'This reward has not started yet') {
                 response.status = false;
-                response.errMsg = 'Error checking reward history';
-                response.statusCode = 500;
-                return reject(response);
-            }
-
-            if (results.length > 0) {
-                // Reward has already been redeemed
-                response.status = false;
-                response.errMsg = 'Reward has already been redeemed';
+                response.errMsg = 'This reward has not started yet';
                 response.statusCode = 400;
-                return reject(response);
+                resolve(response);
             }
-
+            else if (reward.errMsg === 'This reward has expired') {
+                response.status = false;
+                response.errMsg = 'This reward has expired';
+                response.statusCode = 400;
+                resolve(response);
+            }
+            else if (reward.errMsg === 'Sorry, this reward is out of stock') {
+                response.status = false;
+                response.errMsg = 'Sorry, this reward is out of stock';
+                response.statusCode = 400;
+                resolve(response);
+            }
+            else {
+                // Check if the reward is not found
+                response.status = false;
+                response.errMsg = 'Reward not found'; // "Reward not found"
+                // response.errMsg = 'ไม่พบรางวัลนี้'; // "Reward not found"
+                response.statusCode = 404;
+                resolve(response);
+            }
+        }
+        else {
             // Continue with the redemption process if the reward hasn't been redeemed
             const invoiceNum = generateInvoiceNumber();
 
@@ -520,7 +511,8 @@ Transfer.Redeem = function (RedeemInput) {
                 sender,
                 client: client,
                 transferInfo: RedeemInput,
-                invoiceNum: invoiceNum
+                invoiceNum: invoiceNum,
+                reward_name: reward.data.reward_name
             }
 
             Object.assign(RedeemInput, redeemDb);
@@ -566,6 +558,7 @@ Transfer.Redeem = function (RedeemInput) {
                                                 if (historyResult.affectedRows > 0) {
                                                     // Successfully inserted into reward_history
                                                     response.data = { message: 'Redeem successful and added to reward history' };
+                                                    Flex.redeemSlip(slipPayLoad)
                                                     resolve(response);
                                                 } else {
                                                     response.status = false;
@@ -612,9 +605,10 @@ Transfer.Redeem = function (RedeemInput) {
                     response.statusCode = 500;
                     reject(response);
                 });
-        });
+        }
     });
 }
+
 
 Transfer.getDataByInvoiceNum = function (invoice_num) {
     return new Promise((resolve, reject) => {

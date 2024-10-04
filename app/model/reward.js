@@ -16,85 +16,67 @@ Reward.addReward = function (rewardInput) {
         const reward_id = generateRewardId();
         rewardInput.reward_id = reward_id;
 
-        // Helper function to convert date format from DD-MM-YYYY to YYYY-MM-DD
-        function convertToMySQLDate(dateStr) {
-            const [datePart, timePart] = dateStr.split(',');
-            const [day, month, year] = datePart.split('-');
-
-            let formattedDate = `${year}-${month}-${day}`;
-            let formattedTime = timePart;
-
-            // Handle the case for 24:00:00 time
-            if (timePart === '24:00:00') {
-                const dateObj = new Date(`${year}-${month}-${day}T00:00:00`);
-                dateObj.setDate(dateObj.getDate() + 1);
-
-                formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                formattedTime = '00:00:00'; // Reset time to 00:00:00
-            }
-
-            return `${formattedDate} ${formattedTime}`;
-        }
-
-        // Date conversion for reward start and end
-        if (rewardInput.reward_start) {
-            rewardInput.reward_start = convertToMySQLDate(rewardInput.reward_start);
-        }
-
-        if (rewardInput.reward_end) {
-            rewardInput.reward_end = convertToMySQLDate(rewardInput.reward_end);
-        }
-
-        const currentDate = new Date();
-
-        // Check if reward_end is before the current date and time
-        if (rewardInput.reward_end) {
-            const endDate = new Date(rewardInput.reward_end);
-            if (endDate < currentDate) {
-                return reject({
-                    status: false,
-                    errMsg: 'reward_end cannot be before the current date and time'
-                });
-            }
-        }
-
-        // Check if reward_start is after or at the same time as reward_end
-        if (rewardInput.reward_start && rewardInput.reward_end) {
-            const startDate = new Date(rewardInput.reward_start);
-            const endDate = new Date(rewardInput.reward_end);
-
-            if (startDate > endDate) {
-                return reject({
-                    status: false,
-                    errMsg: 'reward_start cannot be after reward_end'
-                });
-            } else if (startDate.getTime() === endDate.getTime()) {
-                return reject({
-                    status: false,
-                    errMsg: 'reward_start and reward_end cannot be at the same time'
-                });
-            }
-        }
-
-        // Check if reward_amount is 0 or less than 0
-        if (!rewardInput.reward_amount || rewardInput.reward_amount <= 0) {
-            return reject({
-                status: false,
-                errMsg: 'reward_amount must be greater than 0'
-            });
-        }
-
-        // Check if reward_price is lower than 0
-        if (rewardInput.reward_price < 0) {
-            return reject({
-                status: false,
-                errMsg: 'reward_price cannot be lower than 0'
-            });
-        }
-
-        const r = 'INSERT INTO reward_list SET ?';
-
         try {
+            // Date conversion for reward start and end
+            if (rewardInput.reward_start) {
+                rewardInput.reward_start = await convertToMySQLDate(rewardInput.reward_start)
+                    .catch(err => reject(err)); // Catch and handle date conversion errors
+            }
+
+            if (rewardInput.reward_end) {
+                rewardInput.reward_end = await convertToMySQLDate(rewardInput.reward_end)
+                    .catch(err => reject(err)); // Catch and handle date conversion errors
+            }
+
+            const currentDate = new Date();
+
+            // Check if reward_end is before the current date and time
+            if (rewardInput.reward_end) {
+                const endDate = new Date(rewardInput.reward_end);
+                if (endDate < currentDate) {
+                    return reject({
+                        status: false,
+                        errMsg: 'reward_end cannot be before the current date and time'
+                    });
+                }
+            }
+
+            // Check if reward_start is after or at the same time as reward_end
+            if (rewardInput.reward_start && rewardInput.reward_end) {
+                const startDate = new Date(rewardInput.reward_start);
+                const endDate = new Date(rewardInput.reward_end);
+
+                if (startDate > endDate) {
+                    return reject({
+                        status: false,
+                        errMsg: 'reward_start cannot be after reward_end'
+                    });
+                } else if (startDate.getTime() === endDate.getTime()) {
+                    return reject({
+                        status: false,
+                        errMsg: 'reward_start and reward_end cannot be at the same time'
+                    });
+                }
+            }
+
+            // Check if reward_amount is 0 or less than 0
+            if (!rewardInput.reward_amount || rewardInput.reward_amount <= 0) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_amount must be greater than 0'
+                });
+            }
+
+            // Check if reward_price is lower than 0
+            if (rewardInput.reward_price < 0) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_price cannot be lower than 0'
+                });
+            }
+
+            const r = 'INSERT INTO reward_list SET ?';
+
             sql.query(r, rewardInput, (err, results) => {
                 if (err) {
                     return reject({
@@ -113,10 +95,15 @@ Reward.addReward = function (rewardInput) {
                 }
             });
         } catch (err) {
-            reject(err);
+            // Catch any other unexpected errors
+            reject({
+                status: false,
+                errMsg: 'An unexpected error occurred: ' + err.message
+            });
         }
     });
 };
+
 
 Reward.rewardCarousel = function (userId, client) {
     return new Promise(async (resolve, reject) => {
@@ -358,9 +345,10 @@ Reward.getRewardByReward_id = function (reward_id) {
         // and check if it is within the start and end date
         const s = `
             SELECT rl.*, 
-                   (rl.reward_amount - IFNULL(COUNT(rh.reward_id), 0)) AS available_reward_amount
+                   (rl.reward_amount - IFNULL(COUNT(CASE WHEN rh.reward_status IN ('n', 'y') THEN 1 END), 0)) AS available_reward_amount
             FROM reward_list rl
             LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+            AND rh.reward_status IN ('n', 'y')  -- Only count 'n' and 'y' statuses
             WHERE rl.reward_id = ? 
             AND rl.is_active = 1
             GROUP BY rl.reward_id;
@@ -382,18 +370,24 @@ Reward.getRewardByReward_id = function (reward_id) {
                         // Check if the reward is valid based on date
                         if (currentDate < new Date(reward.reward_start)) {
                             response.status = false;
-                            response.errMsg = 'รางวัลนี้ยังไม่เริ่ม'; // "This reward has not started yet"
+                            response.errMsg = 'This reward has not started yet'; // "This reward has not started yet"
+                            // response.errMsg = 'รางวัลนี้ยังไม่เริ่ม'; // "This reward has not started yet"
                             response.statusCode = 400;
+                            response.data = reward;
                             resolve(response);
                         } else if (currentDate > new Date(reward.reward_end)) {
                             response.status = false;
-                            response.errMsg = 'รางวัลนี้หมดอายุแล้ว'; // "This reward has expired"
+                            response.errMsg = 'This reward has expired'; // "This reward has expired"
+                            // response.errMsg = 'รางวัลนี้หมดอายุแล้ว'; // "This reward has expired"
                             response.statusCode = 400;
+                            response.data = reward;
                             resolve(response);
                         } else if (reward.available_reward_amount <= 0) {
                             response.status = false;
-                            response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
+                            response.errMsg = 'Sorry, this reward is out of stock'; // "Sorry, this reward is out of stock"
+                            // response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
                             response.statusCode = 400;
+                            response.data = reward;
                             resolve(response);
                         } else {
                             response.data = reward; // Return the reward data with available reward amount
@@ -402,7 +396,8 @@ Reward.getRewardByReward_id = function (reward_id) {
                     } else {
                         // Check if the reward is not found
                         response.status = false;
-                        response.errMsg = 'ไม่พบรางวัลนี้'; // "Reward not found"
+                        response.errMsg = 'Reward not found'; // "Reward not found"
+                        // response.errMsg = 'ไม่พบรางวัลนี้'; // "Reward not found"
                         response.statusCode = 404;
                         resolve(response);
                     }
@@ -413,6 +408,112 @@ Reward.getRewardByReward_id = function (reward_id) {
         }
     });
 };
+
+Reward.updateReward = function (rewardInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: {},
+            statusCode: 200
+        };
+
+        const currentDate = new Date();
+        const { tableName, updateFields, whereClause } = rewardInput;
+
+        if (!tableName || !updateFields || !whereClause) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid input. Table name, update fields, and where clause are required.',
+                statusCode: 400
+            });
+        }
+
+        if (tableName === 'reward_list') {
+            try {
+                if (rewardInput.updateFields.reward_start) {
+                    rewardInput.updateFields.reward_start = await convertToMySQLDate(rewardInput.updateFields.reward_start)
+                        .catch(err => reject(err));
+                }
+
+                if (rewardInput.updateFields.reward_end) {
+                    rewardInput.updateFields.reward_end = await convertToMySQLDate(rewardInput.updateFields.reward_end)
+                        .catch(err => reject(err));
+                }
+            } catch (err) {
+                return reject({
+                    status: false,
+                    errMsg: err.message,
+                    statusCode: 400
+                });
+            }
+
+            const startDate = new Date(rewardInput.updateFields.reward_start);
+            const endDate = new Date(rewardInput.updateFields.reward_end);
+
+            if (endDate < currentDate || startDate >= endDate) {
+                return reject({
+                    status: false,
+                    errMsg: 'Invalid reward dates provided.',
+                    statusCode: 400
+                });
+            }
+
+            if (!rewardInput.updateFields.reward_amount || rewardInput.updateFields.reward_amount <= 0) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_amount must be greater than 0',
+                    statusCode: 400
+                });
+            }
+
+            if (rewardInput.updateFields.reward_price === undefined || rewardInput.updateFields.reward_price < 0) {
+                return reject({
+                    status: false,
+                    errMsg: 'reward_price cannot be lower than 0',
+                    statusCode: 400
+                });
+            }
+        }
+
+        const u = `UPDATE ?? SET ? WHERE ?`;
+
+        try {
+            await sql.query(u, [tableName, updateFields, whereClause], (err, results, fields) => {
+                if (err) {
+                    response.status = false;
+                    response.errMsg = err.message;
+                    response.statusCode = 500;
+                    reject(response);
+                } else {
+                    // Handle the case where no rows matched
+                    if (results.affectedRows === 0) {
+                        response.status = false;
+                        response.errMsg = 'No row found with the specified reward_id';
+                        response.statusCode = 404; // Not found
+                        reject(response);
+                    }
+                    // Handle the case where row matched but nothing changed
+                    else if (results.affectedRows > 0 && results.changedRows === 0) {
+                        response.status = false;
+                        response.errMsg = 'No changes made because the provided values are identical to the existing values';
+                        response.statusCode = 400; // Bad request
+                        reject(response);
+                    } else {
+                        response.data = results;
+                        resolve(response);
+                    }
+                }
+            });
+        } catch (err) {
+            response.status = false;
+            response.errMsg = err.message;
+            response.statusCode = 500;
+            reject(response);
+        }
+    });
+};
+
 
 
 
@@ -437,5 +538,78 @@ function formatThaiDate(sqlDate) {
 
     return `${day} ${month} ${year}`;
 }
+
+// Helper function to convert date format from DD-MM-YYYY to YYYY-MM-DD with date and time validation
+function convertToMySQLDate(dateStr) {
+    return new Promise((resolve, reject) => {
+        // Check if dateStr is in the expected format
+        if (!dateStr.includes(',')) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid date format. Expected format is DD-MM-YYYY,HH:MM:SS'
+            });
+        }
+
+        const [datePart, timePart] = dateStr.split(',');
+        const [day, month, year] = datePart.split('-');
+        const [hours, minutes, seconds] = timePart.split(':');
+
+        // Validate that day, month, year, hours, minutes, and seconds are numbers
+        if (isNaN(day) || isNaN(month) || isNaN(year) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid date or time component.'
+            });
+        }
+
+        // Convert to integers
+        const dayInt = parseInt(day);
+        const monthInt = parseInt(month);
+        const yearInt = parseInt(year);
+        const hoursInt = parseInt(hours);
+        const minutesInt = parseInt(minutes);
+        const secondsInt = parseInt(seconds);
+
+        // Validate time: hours must be 0-23, minutes and seconds 0-59
+        if (hoursInt < 0 || hoursInt > 23 || minutesInt < 0 || minutesInt > 59 || secondsInt < 0 || secondsInt > 59) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid time format. Expected time format is HH:MM:SS where hours are 0-23, minutes and seconds 0-59.'
+            });
+        }
+
+        // Validate month (1-12)
+        if (monthInt < 1 || monthInt > 12) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid month. Expected month between 01 and 12.'
+            });
+        }
+
+        // Validate day range depending on the month and leap year
+        const daysInMonth = new Date(yearInt, monthInt, 0).getDate(); // Get number of days in the month
+        if (dayInt < 1 || dayInt > daysInMonth) {
+            return reject({
+                status: false,
+                errMsg: `Invalid day. ${monthInt}-${yearInt} only has ${daysInMonth} days.`
+            });
+        }
+
+        let formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        let formattedTime = timePart;
+
+        // Handle the case for 24:00:00 time
+        if (timePart === '24:00:00') {
+            const dateObj = new Date(`${year}-${month}-${day}T00:00:00`);
+            dateObj.setDate(dateObj.getDate() + 1);
+
+            formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+            formattedTime = '00:00:00'; // Reset time to 00:00:00
+        }
+
+        resolve(`${formattedDate} ${formattedTime}`);
+    });
+}
+
 
 module.exports = Reward

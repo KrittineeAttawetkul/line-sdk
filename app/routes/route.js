@@ -33,6 +33,7 @@ module.exports = function (app) {
 
   app.route("/api/addreward").post(Reward.addReward);
   app.route("/api/getreward").post(Reward.getRewardByReward_id);
+  app.route("/api/updatereward").post(Reward.updateReward);
 
 }
 
