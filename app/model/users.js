@@ -19,11 +19,6 @@ Users.getUserByUserId = function (user_id) {
         }
 
         const s = "SELECT * FROM lineprofile WHERE user_id = ?"
-        // const s = `SELECT lp.*, clv.lv_name 
-        //     FROM lineprofile lp 
-        //     INNER JOIN card_lv clv ON 
-        //     WHERE user_id = ? 
-        // `
 
         try {
             sql.query(
