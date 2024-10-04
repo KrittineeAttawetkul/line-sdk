@@ -225,7 +225,7 @@ Reward.rewardCarousel = function (userId, client) {
                             "size": "full",
                             "aspectRatio": "20:22",
                             "aspectMode": "cover",
-                            "url": "https://developers-resource.landpress.line.me/fx/img/01_5_carousel.png"
+                            "url": "https://fastly.picsum.photos/id/1060/200/300.jpg?hmac=xYtFmeYcfydIF3-Qybnra-tMwklX69T52EtGd-bacBI"
                         },
                         "body": {
                             "type": "box",
@@ -243,7 +243,7 @@ Reward.rewardCarousel = function (userId, client) {
                                     "color": "#5A82E2"
                                 }
                             ],
-                            "justifyContent": "flex-end"
+                            "justifyContent": "center"
                         }
                     });
                 } else {
@@ -256,7 +256,7 @@ Reward.rewardCarousel = function (userId, client) {
                             "size": "full",
                             "aspectRatio": "20:17",
                             "aspectMode": "cover",
-                            "url": "https://developers-resource.landpress.line.me/fx/img/01_5_carousel.png"
+                            "url": "https://fastly.picsum.photos/id/1060/200/300.jpg?hmac=xYtFmeYcfydIF3-Qybnra-tMwklX69T52EtGd-bacBI"
                         },
                         "body": {
                             "type": "box",
@@ -284,7 +284,7 @@ Reward.rewardCarousel = function (userId, client) {
                                     "gravity": "center"
                                 }
                             ],
-                            "justifyContent": "flex-end",
+                            "justifyContent": "center",
                             "spacing": "md"
                         }
                     });
