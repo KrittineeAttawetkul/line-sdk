@@ -5,7 +5,7 @@ exports.addReward = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -15,7 +15,7 @@ exports.getRewardByReward_id = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -24,6 +24,16 @@ exports.updateReward = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
+        });
+}
+
+exports.allReward = async function (req, res) {
+    const { pageNo, itemPerPage } = req.body
+    await Reward.allReward(pageNo, itemPerPage)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(200).send(err)
         });
 }

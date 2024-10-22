@@ -189,9 +189,9 @@ Reward.rewardCarousel = function (userId, client) {
                                 {
                                     "type": "button",
                                     "action": {
-                                        "type": "message",
+                                        "type": "uri",
                                         "label": "Redeem Now!",
-                                        "text": "Redeemed"
+                                        "uri": `https://liff.line.me/2006140913-67Argbab?reward_id=${product.reward_id}`
                                     },
                                     "color": "#5A82E2",
                                     "style": "primary"
@@ -263,9 +263,9 @@ Reward.rewardCarousel = function (userId, client) {
                                 {
                                     "type": "button",
                                     "action": {
-                                        "type": "message",
-                                        "label": "see more",
-                                        "text": "see more"
+                                        "type": "uri",
+                                        "label": "See more",
+                                        "uri": "https://liff.line.me/2006140913-Wj0P9818"
                                     },
                                     "style": "secondary",
                                     "gravity": "center"
@@ -372,21 +372,21 @@ Reward.getRewardByReward_id = function (reward_id) {
                             response.status = false;
                             response.errMsg = 'This reward has not started yet'; // "This reward has not started yet"
                             // response.errMsg = 'รางวัลนี้ยังไม่เริ่ม'; // "This reward has not started yet"
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             response.data = reward;
                             resolve(response);
                         } else if (currentDate > new Date(reward.reward_end)) {
                             response.status = false;
                             response.errMsg = 'This reward has expired'; // "This reward has expired"
                             // response.errMsg = 'รางวัลนี้หมดอายุแล้ว'; // "This reward has expired"
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             response.data = reward;
                             resolve(response);
                         } else if (reward.available_reward_amount <= 0) {
                             response.status = false;
                             response.errMsg = 'Sorry, this reward is out of stock'; // "Sorry, this reward is out of stock"
                             // response.errMsg = 'ขออภัย รางวัลนี้หมดแล้ว'; // "Sorry, this reward is out of stock"
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             response.data = reward;
                             resolve(response);
                         } else {
@@ -398,7 +398,7 @@ Reward.getRewardByReward_id = function (reward_id) {
                         response.status = false;
                         response.errMsg = 'Reward not found'; // "Reward not found"
                         // response.errMsg = 'ไม่พบรางวัลนี้'; // "Reward not found"
-                        response.statusCode = 404;
+                        response.statusCode = 200;
                         resolve(response);
                     }
                 }
@@ -425,10 +425,11 @@ Reward.updateReward = function (rewardInput) {
             return reject({
                 status: false,
                 errMsg: 'Invalid input. Table name, update fields, and where clause are required.',
-                statusCode: 400
+                statusCode: 200
             });
         }
 
+        // Logic for reward_list table
         if (tableName === 'reward_list') {
             try {
                 if (rewardInput.updateFields.reward_start) {
@@ -444,7 +445,7 @@ Reward.updateReward = function (rewardInput) {
                 return reject({
                     status: false,
                     errMsg: err.message,
-                    statusCode: 400
+                    statusCode: 200
                 });
             }
 
@@ -455,7 +456,7 @@ Reward.updateReward = function (rewardInput) {
                 return reject({
                     status: false,
                     errMsg: 'Invalid reward dates provided.',
-                    statusCode: 400
+                    statusCode: 200
                 });
             }
 
@@ -463,7 +464,7 @@ Reward.updateReward = function (rewardInput) {
                 return reject({
                     status: false,
                     errMsg: 'reward_amount must be greater than 0',
-                    statusCode: 400
+                    statusCode: 200
                 });
             }
 
@@ -471,8 +472,35 @@ Reward.updateReward = function (rewardInput) {
                 return reject({
                     status: false,
                     errMsg: 'reward_price cannot be lower than 0',
-                    statusCode: 400
+                    statusCode: 200
                 });
+            }
+        }
+
+        // Logic for reward_history table
+        if (tableName === 'reward_history') {
+            // Check if reward_status is changing to "c"
+            if (updateFields.reward_status === 'c') {
+                try {
+                    // Check current status
+                    const currentStatusQuery = `SELECT * FROM ?? WHERE ?`;
+                    await sql.query(currentStatusQuery, [tableName, whereClause], async (err, results, fields) => {
+                        console.log('currentStatusResults', results.data);
+                        // If the current status is not "c", proceed with voidRedeem
+                        if (results.length > 0 && results[0].reward_status !== 'c') {
+
+                            // Send success message when void redeem is successful
+                            response.data.voidRedeemMessage = 'Void redeem successful'; // Adding success message
+                            resolve(response)
+                        }
+                    });
+                } catch (err) {
+                    return reject({
+                        status: false,
+                        errMsg: err.message,
+                        statusCode: 500
+                    });
+                }
             }
         }
 
@@ -497,7 +525,7 @@ Reward.updateReward = function (rewardInput) {
                     else if (results.affectedRows > 0 && results.changedRows === 0) {
                         response.status = false;
                         response.errMsg = 'No changes made because the provided values are identical to the existing values';
-                        response.statusCode = 400; // Bad request
+                        response.statusCode = 200; // Bad request
                         reject(response);
                     } else {
                         response.data = results;
@@ -514,6 +542,47 @@ Reward.updateReward = function (rewardInput) {
     });
 };
 
+Reward.allReward = function (pageNo, itemPerPage) {
+    return new Promise((resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        // Calculate the offset for pagination
+        let offset = (pageNo - 1) * itemPerPage;
+
+        let pageOffset = (pageNo * itemPerPage) - itemPerPage;
+
+
+        const query = `
+        SELECT rl.*, 
+               (rl.reward_amount - COALESCE(COUNT(rh.reward_id), 0)) AS available_amount
+        FROM reward_list rl
+        LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+        WHERE rl.is_active = 1 
+        AND rl.reward_amount > 0
+        AND NOW() BETWEEN rl.reward_start AND rl.reward_end
+        GROUP BY rl.reward_id
+        HAVING available_amount > 0
+        LIMIT ?, ?`;
+
+        sql.query(query, [pageOffset, itemPerPage], (err, results) => {
+            if (err) {
+                console.error(err);
+                response.status = false;
+                response.errMsg = 'Error fetching rewards';
+                response.statusCode = 500;
+                return reject(response);
+            }
+
+            response.data = results; // Assign the filtered rewards directly
+            resolve(response);
+        });
+    });
+};
 
 
 

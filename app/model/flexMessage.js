@@ -237,7 +237,7 @@ Flex.voidSlip = function (Data) {
                             "weight": "bold",
                             "size": "xxl",
                             "margin": "xs",
-                            "color": "#FF1400"
+                            "color": "#FF1200"
                         },
                         {
                             "type": "separator",
@@ -339,7 +339,7 @@ Flex.redeemSlip = function (Data) {
                             "weight": "bold",
                             "size": "xxl",
                             "margin": "xs",
-                            "color": "#FF1400"
+                            "color": "#FF1200"
                         },
                         {
                             "type": "separator",
@@ -441,7 +441,7 @@ Flex.senderSlip = function (Data) {
                             "weight": "bold",
                             "size": "xxl",
                             "margin": "xs",
-                            "color": "#FF1400"
+                            "color": "#FF1200"
                         },
                         {
                             "type": "text",

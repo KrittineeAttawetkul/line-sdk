@@ -8,6 +8,6 @@ exports.Test = function(req, res){
         res.status(200).send(resData);
     })
     .catch(errRes => {
-        res.status(400).send(errRes);
+        res.status(200).send(errRes);
     });
 }

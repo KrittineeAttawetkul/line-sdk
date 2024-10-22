@@ -250,28 +250,28 @@ Transfer.transferPoint = function (transferInput) {
                             console.log('point amount = 0')
                             response.status = false;
                             response.errMsg = 'point amount = 0';
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             reject(response);
                         }
                     } else {
                         // Insufficient balance
                         response.status = false;
                         response.errMsg = 'Insufficient balance';
-                        response.statusCode = 400;
+                        response.statusCode = 200;
                         reject(response);
                     }
                 } else {
                     // Balance is not greater than 0
                     response.status = false;
                     response.errMsg = 'Balance is not sufficient';
-                    response.statusCode = 400;
+                    response.statusCode = 200;
                     reject(response);
                 }
             } else {
                 console.log('same user name')
                 response.status = false;
                 response.errMsg = 'Same user name';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 reject(response);
             }
         } catch (err) {
@@ -346,7 +346,7 @@ Transfer.earnPoint = function (earnInput) {
                 console.log('point amount = 0')
                 response.status = false;
                 response.errMsg = 'point amount = 0';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 reject(response);
             }
         } catch (err) {
@@ -425,21 +425,21 @@ Transfer.voidPoint = function (voidInput) {
                             console.log('point amount = 0')
                             response.status = false;
                             response.errMsg = 'point amount = 0';
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             reject(response);
                         }
                     } else {
                         // Insufficient balance
                         response.status = false;
                         response.errMsg = 'Insufficient balance';
-                        response.statusCode = 400;
+                        response.statusCode = 200;
                         reject(response);
                     }
                 } else {
                     // Balance is not greater than 0
                     response.status = false;
                     response.errMsg = 'Balance is not sufficient';
-                    response.statusCode = 400;
+                    response.statusCode = 200;
                     reject(response);
                 }
             })
@@ -468,19 +468,19 @@ Transfer.Redeem = function (RedeemInput) {
             if (reward.errMsg === 'This reward has not started yet') {
                 response.status = false;
                 response.errMsg = 'This reward has not started yet';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 resolve(response);
             }
             else if (reward.errMsg === 'This reward has expired') {
                 response.status = false;
                 response.errMsg = 'This reward has expired';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 resolve(response);
             }
             else if (reward.errMsg === 'Sorry, this reward is out of stock') {
                 response.status = false;
                 response.errMsg = 'Sorry, this reward is out of stock';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 resolve(response);
             }
             else {
@@ -501,7 +501,7 @@ Transfer.Redeem = function (RedeemInput) {
                 invoice_num: invoiceNum,
                 receiver_id: null,
                 point_amount: reward.data.reward_price,
-                comment: null,
+                comment: reward.data.reward_name,
                 type: 'redeem',
             }
 
@@ -581,21 +581,21 @@ Transfer.Redeem = function (RedeemInput) {
                                 console.log('point amount = 0');
                                 response.status = false;
                                 response.errMsg = 'Point amount cannot be 0';
-                                response.statusCode = 400;
+                                response.statusCode = 200;
                                 reject(response);
                             }
                         } else {
                             // Insufficient balance
                             response.status = false;
                             response.errMsg = 'Insufficient balance';
-                            response.statusCode = 400;
+                            response.statusCode = 200;
                             reject(response);
                         }
                     } else {
                         // Balance is not greater than 0
                         response.status = false;
                         response.errMsg = 'Insufficient balance';
-                        response.statusCode = 400;
+                        response.statusCode = 200;
                         reject(response);
                     }
                 })
@@ -683,7 +683,7 @@ Transfer.voidEarn = function (voidInput) {
             if (hasVoid) {
                 response.status = false;
                 response.errMsg = 'Cannot void an already voided transaction';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 reject(response);
             } else if (hasEarn) {
                 let voidDb = {
@@ -725,7 +725,7 @@ Transfer.voidEarn = function (voidInput) {
             } else {
                 response.status = false;
                 response.errMsg = 'Not earn';
-                response.statusCode = 400;
+                response.statusCode = 200;
                 reject(response);
             }
         } catch (err) {

@@ -7,7 +7,7 @@ exports.getBalanceByUserId = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -18,7 +18,7 @@ exports.getCardByUserId = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -29,7 +29,7 @@ exports.transferPoint = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -40,7 +40,7 @@ exports.earnPoint = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -51,7 +51,7 @@ exports.voidPoint = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -62,7 +62,7 @@ exports.Redeem = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -74,7 +74,7 @@ exports.getDataByInvoiceNum = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -85,7 +85,7 @@ exports.voidEarn = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -96,6 +96,6 @@ exports.getProfile = async function (req, res) {
         .then((response) => {
             res.send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }

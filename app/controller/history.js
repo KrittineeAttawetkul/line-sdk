@@ -9,7 +9,7 @@ exports.getHistoryByUserId = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -18,6 +18,6 @@ exports.balanceRanking = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }

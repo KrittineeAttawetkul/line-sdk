@@ -7,7 +7,7 @@ exports.getUserByUserId = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -18,7 +18,7 @@ exports.getQrByUserId = async function (req, res) {
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
 
@@ -29,6 +29,6 @@ exports.Register = async function (req, res) {
             res.status(response.statusCode).send(response)
             //  console.log(response)
         }).catch((err) => {
-            res.status(400).send(err)
+            res.status(200).send(err)
         });
 }
