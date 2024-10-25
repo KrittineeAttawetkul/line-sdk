@@ -23,6 +23,7 @@ module.exports = function (app) {
   app.route("/api/earn").post(Transfer.earnPoint);
   app.route("/api/void").post(Transfer.voidPoint);
   app.route("/api/redeem").post(Transfer.Redeem);
+  app.route("/api/earnredeem").post(Transfer.earnRedeem);
   app.route("/api/invoice").post(Transfer.getDataByInvoiceNum);
   app.route("/api/voidEarn").post(Transfer.voidEarn);
   app.route("/api/getprofile").post(Transfer.getProfile);
@@ -35,6 +36,7 @@ module.exports = function (app) {
   app.route("/api/getreward").post(Reward.getRewardByReward_id);
   app.route("/api/updatereward").post(Reward.updateReward);
   app.route("/api/allReward").post(Reward.allReward);
+  app.route("/api/rewardhistory").post(Reward.getRewardHistoryByUserId);
 
 }
 

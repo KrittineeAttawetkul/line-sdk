@@ -131,7 +131,7 @@ Flex.earnSlip = function (Data) {
                         },
                         {
                             "type": "text",
-                            "text": `${Data.transferInfo.point_amount} คะแนน`,
+                            "text": `${Data.transferInfo.point_amount || Data.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
                             "margin": "xs",
@@ -151,7 +151,7 @@ Flex.earnSlip = function (Data) {
                         },
                         {
                             "type": "text",
-                            "text": `${Data.transferInfo.comment}`,
+                            "text": `${Data.transferInfo.comment || Data.comment}`,
                             "color": "#333333",
                             "wrap": true,
                             "margin": "md",

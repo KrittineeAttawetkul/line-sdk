@@ -89,6 +89,17 @@ exports.voidEarn = async function (req, res) {
         });
 }
 
+exports.earnRedeem = async function (req, res) {
+    const redeemInput = req.body
+
+    await Transfer.earnRedeem(redeemInput)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(200).send(err)
+        });
+}
+
 exports.getProfile = async function (req, res) {
     const user_id = req.body
 

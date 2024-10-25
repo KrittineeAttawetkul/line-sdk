@@ -609,6 +609,221 @@ Transfer.Redeem = function (RedeemInput) {
     });
 }
 
+Transfer.earnRedeem = function (redeemInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        }
+
+        try {
+            console.log('redeemInput.invoice_num', redeemInput.invoice_num);
+
+            const result = await Transfer.getDataByInvoiceNum(redeemInput.invoice_num);
+            let data = result.data;
+            console.log('earnRedeem Data', data);
+
+            const receiver = await getProfile(data[0].sender_id);
+
+            let hasRedeem = false;
+            let hasEarn = false;
+
+            data.forEach(record => {
+                if (record.type === 'redeem') {
+                    hasRedeem = true;
+                }
+                if (record.type === 'earn') {
+                    hasEarn = true;
+                }
+            });
+
+            if (hasEarn) {
+                response.status = false;
+                response.errMsg = 'Cannot earn an already earn transaction';
+                response.statusCode = 200;
+                reject(response);
+            } else if (hasRedeem) {
+                let earnDb = {
+                    invoice_num: data[0].invoice_num,
+                    sender_id: null,
+                    receiver_id: data[0].sender_id,
+                    type: 'earn',
+                    point_amount: data[0].point_amount,
+                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].comment}`,
+                };
+
+                let slipPayLoad = {
+                    receiver,
+                    client: client,
+                    transferInfo: redeemInput,
+                    invoiceNum: data[0].invoice_num,
+                    point_amount: data[0].point_amount,
+                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].comment}`,
+                };
+
+                const ePoint = "INSERT INTO point_transfer SET ?";
+
+                sql.query(ePoint, [earnDb], (err, results, fields) => {
+                    if (!err) {
+                        if (results.affectedRows > 0) {
+                            response.data = { message: 'Earn Redeem successful' };
+                            Flex.earnSlip(slipPayLoad);
+                            resolve(response);
+                        } else {
+                            response.status = false;
+                            response.errMsg = 'บันทึกไม่สำเร็จ';
+                            resolve(response);
+                        }
+                    } else {
+                        response.status = false;
+                        response.errMsg = err;
+                        reject(response);
+                    }
+                });
+            } else {
+                response.status = false;
+                response.errMsg = 'Not earn';
+                response.statusCode = 200;
+                reject(response);
+            }
+        } catch (err) {
+            response.status = false;
+            response.errMsg = err.message || 'Error occurred';
+            response.statusCode = 500;
+            reject(response);
+        }
+    })
+}
+
+Reward.updateReward = async function (rewardInput) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: {},
+            statusCode: 200
+        };
+
+        const currentDate = new Date();
+        const { tableName, updateFields, whereClause } = rewardInput;
+
+        // Validate input
+        if (!tableName || !updateFields || !whereClause) {
+            response = {
+                status: false,
+                errMsg: 'Invalid input. Table name, update fields, and where clause are required.',
+                statusCode: 400 // Bad Request
+            };
+            return reject(response);
+        }
+
+        // Logic for reward_list table
+        if (tableName === 'reward_list') {
+            if (updateFields.reward_start) {
+                updateFields.reward_start = await convertToMySQLDate(updateFields.reward_start);
+            }
+            if (updateFields.reward_end) {
+                updateFields.reward_end = await convertToMySQLDate(updateFields.reward_end);
+            }
+
+            const startDate = new Date(updateFields.reward_start);
+            const endDate = new Date(updateFields.reward_end);
+
+            // Validate dates
+            if (endDate < currentDate || startDate >= endDate) {
+                response = {
+                    status: false,
+                    errMsg: 'Invalid reward dates provided.',
+                    statusCode: 400 // Bad Request
+                };
+                return reject(response);
+            }
+
+            // Validate amounts
+            if (!updateFields.reward_amount || updateFields.reward_amount <= 0) {
+                response = {
+                    status: false,
+                    errMsg: 'reward_amount must be greater than 0',
+                    statusCode: 400 // Bad Request
+                };
+                return reject(response);
+            }
+
+            if (updateFields.reward_price === undefined || updateFields.reward_price < 0) {
+                response = {
+                    status: false,
+                    errMsg: 'reward_price cannot be lower than 0',
+                    statusCode: 400 // Bad Request
+                };
+                return reject(response);
+            }
+        }
+
+        // Logic for reward_history table
+        if (tableName === 'reward_history') {
+            if (updateFields.reward_status === 'c') {
+                const currentStatusResults = await new Promise((resolve, reject) => {
+                    const currentStatusQuery = `SELECT * FROM ?? WHERE ?? = ? AND ?? = ?`;
+                    sql.query(currentStatusQuery, [tableName, 'reward_id', whereClause.reward_id, 'invoice_num', whereClause.invoice_num], (err, results) => {
+                        if (err) return reject(err);
+                        resolve(results);
+                    });
+                });
+
+                if (currentStatusResults.length > 0 && currentStatusResults[0].reward_status !== 'c') {
+                    const payload = {
+                        invoice_num: currentStatusResults[0].invoice_num
+                    };
+
+                    await Transfer.earnRedeem(payload);
+                }
+            }
+        }
+
+        // Function to perform the update operation
+        const performUpdate = async () => {
+            const updateQuery = `UPDATE ?? SET ? WHERE ${Object.keys(whereClause).map((key) => `${key} = ?`).join(' AND ')}`;
+            const whereValues = Object.values(whereClause); // Getting values for the where clause
+
+            const results = await new Promise((resolve, reject) => {
+                sql.query(updateQuery, [tableName, updateFields, ...whereValues], (err, results) => {
+                    if (err) return reject(err);
+                    resolve(results);
+                });
+            });
+
+            if (results.affectedRows === 0) {
+                response = {
+                    status: false,
+                    errMsg: 'No row found with the specified reward_id or invoice_num',
+                    statusCode: 404 // Not Found
+                };
+                return reject(response);
+            } else if (results.changedRows === 0) {
+                response = {
+                    status: false,
+                    errMsg: 'No changes made because the provided values are identical to the existing values',
+                    statusCode: 204 // No Content
+                };
+                return reject(response);
+            } else {
+                response.data = results;
+                return response;
+            }
+        };
+
+        // Call performUpdate to execute the update
+        try {
+            response = await performUpdate();
+            return resolve(response);
+        } catch (error) {
+            return reject(error);
+        }
+    });
+};
+
 
 Transfer.getDataByInvoiceNum = function (invoice_num) {
     return new Promise((resolve, reject) => {
@@ -757,8 +972,6 @@ Transfer.getProfile = function (input) {
     })
 }
 
-
-
 function generateInvoiceNumber() {
     const date = new Date();
     const year = date.getFullYear();
@@ -767,6 +980,78 @@ function generateInvoiceNumber() {
     const randomDigits = Math.floor(1000 + Math.random() * 9000);
 
     return `INV-${day}${month}${year}-${randomDigits}`;
+}
+
+// Helper function to convert date format from DD-MM-YYYY to YYYY-MM-DD with date and time validation
+function convertToMySQLDate(dateStr) {
+    return new Promise((resolve, reject) => {
+        // Check if dateStr is in the expected format
+        if (!dateStr.includes(',')) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid date format. Expected format is DD-MM-YYYY,HH:MM:SS'
+            });
+        }
+
+        const [datePart, timePart] = dateStr.split(',');
+        const [day, month, year] = datePart.split('-');
+        const [hours, minutes, seconds] = timePart.split(':');
+
+        // Validate that day, month, year, hours, minutes, and seconds are numbers
+        if (isNaN(day) || isNaN(month) || isNaN(year) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid date or time component.'
+            });
+        }
+
+        // Convert to integers
+        const dayInt = parseInt(day);
+        const monthInt = parseInt(month);
+        const yearInt = parseInt(year);
+        const hoursInt = parseInt(hours);
+        const minutesInt = parseInt(minutes);
+        const secondsInt = parseInt(seconds);
+
+        // Validate time: hours must be 0-23, minutes and seconds 0-59
+        if (hoursInt < 0 || hoursInt > 23 || minutesInt < 0 || minutesInt > 59 || secondsInt < 0 || secondsInt > 59) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid time format. Expected time format is HH:MM:SS where hours are 0-23, minutes and seconds 0-59.'
+            });
+        }
+
+        // Validate month (1-12)
+        if (monthInt < 1 || monthInt > 12) {
+            return reject({
+                status: false,
+                errMsg: 'Invalid month. Expected month between 01 and 12.'
+            });
+        }
+
+        // Validate day range depending on the month and leap year
+        const daysInMonth = new Date(yearInt, monthInt, 0).getDate(); // Get number of days in the month
+        if (dayInt < 1 || dayInt > daysInMonth) {
+            return reject({
+                status: false,
+                errMsg: `Invalid day. ${monthInt}-${yearInt} only has ${daysInMonth} days.`
+            });
+        }
+
+        let formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        let formattedTime = timePart;
+
+        // Handle the case for 24:00:00 time
+        if (timePart === '24:00:00') {
+            const dateObj = new Date(`${year}-${month}-${day}T00:00:00`);
+            dateObj.setDate(dateObj.getDate() + 1);
+
+            formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+            formattedTime = '00:00:00'; // Reset time to 00:00:00
+        }
+
+        resolve(`${formattedDate} ${formattedTime}`);
+    });
 }
 
 module.exports = Transfer

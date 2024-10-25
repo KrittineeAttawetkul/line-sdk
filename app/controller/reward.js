@@ -37,3 +37,13 @@ exports.allReward = async function (req, res) {
             res.status(200).send(err)
         });
 }
+
+exports.getRewardHistoryByUserId = async function (req, res) {
+    const { user_id, pageNo, itemPerPage } = req.body
+    await Reward.getRewardHistoryByUserId(user_id, pageNo, itemPerPage)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+        }).catch((err) => {
+            res.status(200).send(err)
+        });
+}
