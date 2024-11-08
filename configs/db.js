@@ -21,12 +21,28 @@ if (process.env.stage === 'dev') {
         database: 'line_loyalty',
         port: '3306'
     })
-} else if (process.env.stage === 'prod') {
-    console.log("host :",process.env.host);
-    console.log("user :",process.env.user);
-    console.log("password :",process.env.password);
-    console.log("database :",process.env.database);
-    
+}
+else if (process.env.stage === 'render') {
+    console.log("host :", process.env.host);
+    console.log("user :", process.env.user);
+    console.log("password :", process.env.password);
+    console.log("database :", process.env.database);
+
+    connection = mysql.createPool({
+        connectionLimit: 10, // Set the limit based on your needs
+        host: process.env.host,
+        user: process.env.user,
+        password: process.env.password,
+        database: process.env.database,
+        // port: '3306'
+    })
+}
+else if (process.env.stage === 'prod') {
+    console.log("host :", process.env.host);
+    console.log("user :", process.env.user);
+    console.log("password :", process.env.password);
+    console.log("database :", process.env.database);
+
     connection = mysql.createPool({
         connectionLimit: 10, // Set the limit based on your needs
         host: process.env.host,
