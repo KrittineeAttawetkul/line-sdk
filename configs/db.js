@@ -34,7 +34,7 @@ else if (process.env.stage === 'render') {
         user: process.env.user,
         password: process.env.password,
         database: process.env.database,
-        // port: '3306'
+        port: process.env.port
     })
 }
 else if (process.env.stage === 'prod') {
