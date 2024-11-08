@@ -24,10 +24,10 @@ if (process.env.stage === 'dev') {
 } else if (process.env.stage === 'prod') {
     connection = mysql.createPool({
         connectionLimit: 10, // Set the limit based on your needs
-        host: 'localhost',
-        user: 'nilecon_hr',
-        password: 'NnRr64o9s1',
-        database: 'nilecon_hr',
+        host: process.env.host,
+        user: process.env.user,
+        password: process.env.password,
+        database: process.env.database,
         // port: '3306'
     })
 }
