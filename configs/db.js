@@ -22,6 +22,11 @@ if (process.env.stage === 'dev') {
         port: '3306'
     })
 } else if (process.env.stage === 'prod') {
+    console.log("host :",process.env.host);
+    console.log("user :",process.env.user);
+    console.log("password :",process.env.password);
+    console.log("database :",process.env.database);
+    
     connection = mysql.createPool({
         connectionLimit: 10, // Set the limit based on your needs
         host: process.env.host,
