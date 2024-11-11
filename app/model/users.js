@@ -155,4 +155,75 @@ Users.checkTel = function (req) {
     })
 }
 
+Users.checkLogIn = function (req) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        const { username, password } = req
+
+        const query = `
+            SELECT 
+                CASE 
+                    WHEN username = ? THEN 
+                        CASE WHEN password = ? THEN 'valid' ELSE 'invalid_password' END 
+                    ELSE 'invalid_username' 
+                END as login_status 
+            FROM admin 
+            WHERE username = ? OR username = ? LIMIT 1 /* checks the username twice */
+        `;
+
+        try {
+            sql.query(
+                query,
+                [username, password, username, username],
+                (err, results) => {
+                    if (err) {
+                        console.log('Error =', err);
+                        response.errMsg = err;
+                        response.status = false;
+                        response.statusCode = 500;
+                        reject(response);
+                    } else if (results.length === 0) {
+                        // No record found
+                        response.status = false;
+                        response.errMsg = 'Username not found';
+                        response.data = 'Invalid username';
+                        response.statusCode = 200;
+                        resolve(response);
+                    } else {
+                        const loginStatus = results[0].login_status;
+                        if (loginStatus === 'valid') {
+                            // Valid username and password
+                            response.status = true;
+                            response.data = 'You are Admin Nilecon';
+                            resolve(response);
+                        } else if (loginStatus === 'invalid_password') {
+                            // Username is correct but password is wrong
+                            response.status = false;
+                            response.errMsg = 'Incorrect password';
+                            response.data = 'Invalid password';
+                            response.statusCode = 200;
+                            resolve(response);
+                        } else if (loginStatus === 'invalid_username') {
+                            // Username is not found
+                            response.status = false;
+                            response.errMsg = 'Username not found';
+                            response.data = 'Invalid username';
+                            response.statusCode = 200;
+                            resolve(response);
+                        }
+                    }
+                }
+            );
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
+
 module.exports = Users

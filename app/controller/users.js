@@ -32,3 +32,13 @@ exports.Register = async function (req, res) {
             res.status(200).send(err)
         });
 }
+
+exports.Login = async function (req, res) {
+    await Users.checkLogIn(req.body)
+        .then((response) => {
+            res.status(response.statusCode).send(response)
+            //  console.log(response)
+        }).catch((err) => {
+            res.status(200).send(err)
+        });
+}

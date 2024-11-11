@@ -15,6 +15,7 @@ module.exports = function (app) {
   app.route("/api/users").post(Users.getUserByUserId);
   app.route("/api/qr").post(Users.getQrByUserId);
   app.route("/api/register").post(Users.Register)
+  app.route("/api/login").post(Users.Login)
 
 
   app.route("/api/balance").post(Transfer.getBalanceByUserId);

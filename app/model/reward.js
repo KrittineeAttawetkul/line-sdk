@@ -261,7 +261,7 @@ Reward.rewardCarousel = function (userId, client) {
                                     "type": "button",
                                     "action": {
                                         "type": "uri",
-                                        "label": "History",
+                                        "label": "ประวัติการแลก",
                                         "uri": "https://liff.line.me/2006140913-Q8wg0XkX"
                                     },
                                     "style": "primary",
@@ -272,7 +272,7 @@ Reward.rewardCarousel = function (userId, client) {
                                     "type": "button",
                                     "action": {
                                         "type": "uri",
-                                        "label": "See more",
+                                        "label": "รายการของรางวัล",
                                         "uri": "https://liff.line.me/2006140913-Wj0P9818"
                                     },
                                     "style": "secondary",
