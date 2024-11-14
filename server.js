@@ -3,10 +3,14 @@ const express = require("express"),
     bodyParser = require("body-parser");
 const https = require('https');
 const fs = require('fs');
-var cors = require('cors');
+const cors = require('cors');
 const fileUpload = require('express-fileupload');
+const routes = require("./app/routes/route");
+
 
 require('dotenv').config();
+app.use(express.json())
+app.use(cors());
 
 app.use((req, res, next) => {
     res.set({
@@ -24,16 +28,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'))
 app.use('/images', express.static('assets'));
 
-app.use(cors());
 
 const port = 3998;
 console.log(`Server running at ${port}`);
-
-
-
-var routes = require("./app/routes/route");
-app.use(express.json())
-
 
 if (process.env.stage === 'dev') {
 

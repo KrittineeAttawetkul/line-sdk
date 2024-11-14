@@ -14,19 +14,25 @@ console.log('env = ', process.env.stage)
 //MySQl connection
 if (process.env.stage === 'dev') {
     connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
+        host: process.env.DB_LOCAL_HOST,
+        user: process.env.DB_LOCAL_USER,
+        database: process.env.DB_LOCAL_NAME,
+        port: process.env.DB_LOCAL_PORT
         //MAMP ต้องใส่ BUT XAMPP ไม่ต้องใส่
-        // password: 'root', 
-        database: 'line_loyalty',
-        port: '3306'
+        // password: process.env.DB_LOCAL_PASSWORD, 
+    })
+}
+else if (process.env.stage === 'prod') {
+
+    connection = mysql.createPool({
+        connectionLimit: 10, // Set the limit based on your needs
+        host: process.env.DB_SERVER_HOST,
+        user: process.env.DB_SERVER_USER,
+        password: process.env.DB_SERVER_PASSWORD,
+        database: process.env.DB_SERVER_NAME,
     })
 }
 else if (process.env.stage === 'render') {
-    // console.log("host :", process.env.host);
-    // console.log("user :", process.env.user);
-    // console.log("password :", process.env.password);
-    // console.log("database :", process.env.database);
 
     connection = mysql.createPool({
         connectionLimit: 10, // Set the limit based on your needs
@@ -35,17 +41,6 @@ else if (process.env.stage === 'render') {
         password: process.env.password,
         database: process.env.database,
         port: process.env.port
-    })
-}
-else if (process.env.stage === 'prod') {
-
-    connection = mysql.createPool({
-        connectionLimit: 10, // Set the limit based on your needs
-        host: process.env.host,
-        user: process.env.user,
-        password: process.env.password,
-        database: process.env.database,
-        // port: '3306'
     })
 }
 

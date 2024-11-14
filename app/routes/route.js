@@ -1,5 +1,4 @@
 "use strict";
-const lineConfig = require('../../configs/lineConfig');
 
 module.exports = function (app) {
   var test = require("../controller/test");
@@ -8,6 +7,7 @@ module.exports = function (app) {
   const Transfer = require('../controller/transfer');
   const History = require('../controller/history');
   const Reward = require('../controller/reward');
+  const Auth = require('../controller/auth');
 
   app.route("/api/test").get(test.Test);
   app.route("/webhook").post(lineSdk.Webhook);
@@ -15,7 +15,7 @@ module.exports = function (app) {
   app.route("/api/users").post(Users.getUserByUserId);
   app.route("/api/qr").post(Users.getQrByUserId);
   app.route("/api/register").post(Users.Register)
-  app.route("/api/login").post(Users.Login)
+  // app.route("/api/login").post(Users.Login)
 
 
   app.route("/api/balance").post(Transfer.getBalanceByUserId);
@@ -39,6 +39,8 @@ module.exports = function (app) {
   app.route("/api/allReward").post(Reward.allReward);
   app.route("/api/rewardhistory").post(Reward.getRewardHistoryByUserId);
 
+  app.route('/api/login').post(Auth.Login);
+  // app.route('/api/dashboard').post(Auth.verifyToken, Auth.Login);
 }
 
 

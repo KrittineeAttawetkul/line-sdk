@@ -3,7 +3,6 @@ const { Client } = require('@line/bot-sdk');
 const lineConfig = require('../../configs/lineConfig');
 const client = new Client(lineConfig);
 const Register = require('./register');
-const richmenu = require('../../configs/richmenu');
 
 var Users = function () {
     this.created_at = new Date()
