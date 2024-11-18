@@ -697,7 +697,7 @@ Transfer.earnRedeem = function (redeemInput) {
     })
 }
 
-Reward.updateReward = async function (rewardInput) {
+Reward.updateReward = function (rewardInput) {
     return new Promise(async (resolve, reject) => {
         let response = {
             status: true,
@@ -716,83 +716,93 @@ Reward.updateReward = async function (rewardInput) {
                 errMsg: 'Invalid input. Table name, update fields, and where clause are required.',
                 statusCode: 400 // Bad Request
             };
-            return reject(response);
+            return reject(response); // reject here
         }
 
-        // Logic for reward_list table
-        if (tableName === 'reward_list') {
-            if (updateFields.reward_start) {
-                updateFields.reward_start = await convertToMySQLDate(updateFields.reward_start);
-            }
-            if (updateFields.reward_end) {
-                updateFields.reward_end = await convertToMySQLDate(updateFields.reward_end);
-            }
+        try {
+            // Logic for reward_list table
+            if (tableName === 'reward_list') {
+                if (updateFields.reward_start) {
+                    updateFields.reward_start = await convertToMySQLDate(updateFields.reward_start);
+                }
+                if (updateFields.reward_end) {
+                    updateFields.reward_end = await convertToMySQLDate(updateFields.reward_end);
+                }
 
-            const startDate = new Date(updateFields.reward_start);
-            const endDate = new Date(updateFields.reward_end);
+                const startDate = new Date(updateFields.reward_start);
+                const endDate = new Date(updateFields.reward_end);
 
-            // Validate dates
-            if (endDate < currentDate || startDate >= endDate) {
-                response = {
-                    status: false,
-                    errMsg: 'Invalid reward dates provided.',
-                    statusCode: 400 // Bad Request
-                };
-                return reject(response);
-            }
-
-            // Validate amounts
-            if (!updateFields.reward_amount || updateFields.reward_amount <= 0) {
-                response = {
-                    status: false,
-                    errMsg: 'reward_amount must be greater than 0',
-                    statusCode: 400 // Bad Request
-                };
-                return reject(response);
-            }
-
-            if (updateFields.reward_price === undefined || updateFields.reward_price < 0) {
-                response = {
-                    status: false,
-                    errMsg: 'reward_price cannot be lower than 0',
-                    statusCode: 400 // Bad Request
-                };
-                return reject(response);
-            }
-        }
-
-        // Logic for reward_history table
-        if (tableName === 'reward_history') {
-            if (updateFields.reward_status === 'c') {
-                const currentStatusResults = await new Promise((resolve, reject) => {
-                    const currentStatusQuery = `SELECT * FROM ?? WHERE ?? = ? AND ?? = ?`;
-                    sql.query(currentStatusQuery, [tableName, 'reward_id', whereClause.reward_id, 'invoice_num', whereClause.invoice_num], (err, results) => {
-                        if (err) return reject(err);
-                        resolve(results);
-                    });
-                });
-
-                if (currentStatusResults.length > 0 && currentStatusResults[0].reward_status !== 'c') {
-                    const payload = {
-                        invoice_num: currentStatusResults[0].invoice_num
+                // Validate dates
+                if (endDate < currentDate || startDate >= endDate) {
+                    response = {
+                        status: false,
+                        errMsg: 'Invalid reward dates provided.',
+                        statusCode: 400 // Bad Request
                     };
+                    return reject(response); // reject here
+                }
 
-                    await Transfer.earnRedeem(payload);
+                // Validate amounts
+                if (!updateFields.reward_amount || updateFields.reward_amount <= 0) {
+                    response = {
+                        status: false,
+                        errMsg: 'reward_amount must be greater than 0',
+                        statusCode: 400 // Bad Request
+                    };
+                    return reject(response); // reject here
+                }
+
+                if (updateFields.reward_price === undefined || updateFields.reward_price < 0) {
+                    response = {
+                        status: false,
+                        errMsg: 'reward_price cannot be lower than 0',
+                        statusCode: 400 // Bad Request
+                    };
+                    return reject(response); // reject here
                 }
             }
-        }
 
-        // Function to perform the update operation
-        const performUpdate = async () => {
-            const updateQuery = `UPDATE ?? SET ? WHERE ${Object.keys(whereClause).map((key) => `${key} = ?`).join(' AND ')}`;
-            const whereValues = Object.values(whereClause); // Getting values for the where clause
+            // Logic for reward_history table
+            if (tableName === 'reward_history') {
+                if (updateFields.reward_status === 'c') {
+                    try {
+                        const currentStatusResults = await new Promise((resolve, reject) => {
+                            const currentStatusQuery = `SELECT * FROM ?? WHERE ?? = ? AND ?? = ?`;
+                            sql.query(currentStatusQuery, [tableName, 'reward_id', whereClause.reward_id, 'invoice_num', whereClause.invoice_num], (err, results) => {
+                                if (err) reject(err); // reject here
+                                resolve(results); // resolve here
+                            });
+                        });
 
-            const results = await new Promise((resolve, reject) => {
-                sql.query(updateQuery, [tableName, updateFields, ...whereValues], (err, results) => {
-                    if (err) return reject(err);
-                    resolve(results);
+                        if (currentStatusResults.length > 0 && currentStatusResults[0].reward_status !== 'c') {
+                            const payload = {
+                                invoice_num: currentStatusResults[0].invoice_num
+                            };
+
+                            await Transfer.earnRedeem(payload);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching current status:", error);
+                        return reject({ status: false, errMsg: error.message, statusCode: 500 }); // reject with appropriate error message
+                    }
+                }
+            }
+
+            // Function to perform the update operation
+            const performUpdate = async () => {
+                const updateQuery = `UPDATE ?? SET ? WHERE ${Object.keys(whereClause).map((key) => `${key} = ?`).join(' AND ')}`;
+                const whereValues = Object.values(whereClause); // Getting values for the where clause
+
+                return new Promise((resolve, reject) => {
+                    sql.query(updateQuery, [tableName, updateFields, ...whereValues], (err, results) => {
+                        if (err) return reject(err); // handle rejection here
+                        resolve(results); // resolve here
+                    });
                 });
-            });
+            };
+
+            // Call performUpdate to execute the update
+            const results = await performUpdate();
 
             if (results.affectedRows === 0) {
                 response = {
@@ -800,29 +810,27 @@ Reward.updateReward = async function (rewardInput) {
                     errMsg: 'No row found with the specified reward_id or invoice_num',
                     statusCode: 404 // Not Found
                 };
-                return reject(response);
+                return reject(response); // reject here
             } else if (results.changedRows === 0) {
                 response = {
                     status: false,
                     errMsg: 'No changes made because the provided values are identical to the existing values',
                     statusCode: 204 // No Content
                 };
-                return reject(response);
+                return reject(response); // reject here
             } else {
                 response.data = results;
-                return response;
+                console.log('update Complete');
+                return resolve(response); // return the response
             }
-        };
 
-        // Call performUpdate to execute the update
-        try {
-            response = await performUpdate();
-            return resolve(response);
         } catch (error) {
-            return reject(error);
+            console.error("Error:", error);
+            return reject({ status: false, errMsg: error.message, statusCode: 500 }); // reject on any error
         }
     });
 };
+
 
 
 Transfer.getDataByInvoiceNum = function (invoice_num) {

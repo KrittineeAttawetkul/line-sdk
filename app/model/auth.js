@@ -32,7 +32,7 @@ Auth.Login = function (loginInput) {
                 }
 
                 if (results.length === 0) {
-                    response.errMsg = 'User not found';
+                    response.errMsg = 'Wrong username';
                     response.status = false;
                     response.statusCode = 200;
                     return resolve(response);
@@ -110,5 +110,45 @@ Auth.verifyToken = function (req, res, next) {
     });
 };
 
+
+Auth.rewardList = function () {
+    return new Promise((resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        const query = `
+        SELECT rl.*, 
+        (rl.reward_amount - COALESCE(COUNT(CASE WHEN rh.reward_status IN ('n', 'y') THEN rh.reward_id END), 0)) AS available_amount,
+        COALESCE(COUNT(CASE WHEN rh.reward_status = 'c' THEN rh.reward_id END), 0) AS canceled_amount,
+        CASE 
+            WHEN NOW() BETWEEN rl.reward_start AND rl.reward_end THEN 'Start'   -- Between start and end
+            WHEN NOW() < rl.reward_start THEN 'Not Start'                        -- Before start
+            WHEN NOW() > rl.reward_end THEN 'End'                               -- After end
+            ELSE NULL                                                            -- Shouldn't happen, but for safety
+        END AS reward_status_condition
+        FROM reward_list rl
+        LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+        GROUP BY rl.reward_id
+        `;
+        // LIMIT ?, ?;
+
+        sql.query(query, [], (err, results) => {
+            if (err) {
+                console.error(err);
+                response.status = false;
+                response.errMsg = 'Error fetching rewards';
+                response.statusCode = 500;
+                return reject(response);
+            }
+
+            response.data = results; // Assign the filtered rewards directly
+            resolve(response);
+        });
+    });
+};
 
 module.exports = Auth;

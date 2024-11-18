@@ -9,8 +9,12 @@ exports.Login = async function (req, res) {
         });
 }
 
-exports.verifyToken = async function (req, res, next) {
-    await Auth.verifyToken(req, res, next)
+exports.verifyToken = function (req, res, next) {
+    Auth.verifyToken(req, res, next);
+};
+
+exports.rewardList = async function (req, res) {
+    await Auth.rewardList( req.body)
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
