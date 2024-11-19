@@ -36,7 +36,7 @@ module.exports = function (app) {
   app.route("/api/allReward").post(Reward.allReward);
   app.route("/api/rewardhistory").post(Reward.getRewardHistoryByUserId);
 
-  
+
   //-----------------------CMS-----------------------
   app.route('/api/login').post(Auth.Login);
 
@@ -47,8 +47,7 @@ module.exports = function (app) {
   app.route("/api/voidEarn").post(Transfer.voidEarn);
 
   //------------------REWARD:CMS------------------
-  app.route('/api/rewardlist').post(Auth.rewardList);
-  // app.route('/api/rewardlist').post(Auth.verifyToken, Auth.rewardList);
+  app.route('/api/rewardlist').get(Auth.verifyToken, Auth.rewardList);
   app.route("/api/updatereward").post(Auth.verifyToken, Reward.updateReward);
   app.route("/api/addreward").post(Auth.verifyToken, Reward.addReward);
 

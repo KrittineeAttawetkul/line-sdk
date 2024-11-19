@@ -733,7 +733,15 @@ Reward.updateReward = function (rewardInput) {
                 const endDate = new Date(updateFields.reward_end);
 
                 // Validate dates
-                if (endDate < currentDate || startDate >= endDate) {
+                // if (endDate < currentDate || startDate >= endDate) {
+                //     response = {
+                //         status: false,
+                //         errMsg: 'Invalid reward dates provided.',
+                //         statusCode: 400 // Bad Request
+                //     };
+                //     return reject(response); // reject here
+                // }
+                if (startDate >= endDate) {
                     response = {
                         status: false,
                         errMsg: 'Invalid reward dates provided.',

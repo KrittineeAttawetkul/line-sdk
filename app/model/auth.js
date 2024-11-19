@@ -111,7 +111,47 @@ Auth.verifyToken = function (req, res, next) {
 };
 
 
-Auth.rewardList = function () {
+// Auth.rewardList = function () {
+//     return new Promise((resolve, reject) => {
+//         let response = {
+//             status: true,
+//             errMsg: '',
+//             data: [],
+//             statusCode: 200
+//         };
+
+//         const query = `
+//         SELECT rl.*, 
+//         (rl.reward_amount - COALESCE(COUNT(CASE WHEN rh.reward_status IN ('n', 'y') THEN rh.reward_id END), 0)) AS available_amount,
+//         COALESCE(COUNT(CASE WHEN rh.reward_status = 'c' THEN rh.reward_id END), 0) AS canceled_amount,
+//         CASE 
+//             WHEN NOW() BETWEEN rl.reward_start AND rl.reward_end THEN 'Start'   -- Between start and end
+//             WHEN NOW() < rl.reward_start THEN 'Not Start'                        -- Before start
+//             WHEN NOW() > rl.reward_end THEN 'End'                               -- After end
+//             ELSE NULL                                                            -- Shouldn't happen, but for safety
+//         END AS reward_status_condition
+//         FROM reward_list rl
+//         LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+//         GROUP BY rl.reward_id
+//         `;
+//         // LIMIT ?, ?;
+
+//         sql.query(query, [], (err, results) => {
+//             if (err) {
+//                 console.error(err);
+//                 response.status = false;
+//                 response.errMsg = 'Error fetching rewards';
+//                 response.statusCode = 500;
+//                 return reject(response);
+//             }
+
+//             response.data = results; // Assign the filtered rewards directly
+//             resolve(response);
+//         });
+//     });
+// };
+
+Auth.rewardList = function (input) {
     return new Promise((resolve, reject) => {
         let response = {
             status: true,
@@ -120,35 +160,71 @@ Auth.rewardList = function () {
             statusCode: 200
         };
 
-        const query = `
-        SELECT rl.*, 
-        (rl.reward_amount - COALESCE(COUNT(CASE WHEN rh.reward_status IN ('n', 'y') THEN rh.reward_id END), 0)) AS available_amount,
-        COALESCE(COUNT(CASE WHEN rh.reward_status = 'c' THEN rh.reward_id END), 0) AS canceled_amount,
-        CASE 
-            WHEN NOW() BETWEEN rl.reward_start AND rl.reward_end THEN 'Start'   -- Between start and end
-            WHEN NOW() < rl.reward_start THEN 'Not Start'                        -- Before start
-            WHEN NOW() > rl.reward_end THEN 'End'                               -- After end
-            ELSE NULL                                                            -- Shouldn't happen, but for safety
-        END AS reward_status_condition
-        FROM reward_list rl
-        LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
-        GROUP BY rl.reward_id
-        `;
-        // LIMIT ?, ?;
+        const { start, length, draw, search, order } = input;
 
-        sql.query(query, [], (err, results) => {
+        const searchValue = search?.value || '';
+        const searchQuery = searchValue ? `WHERE reward_name LIKE ?` : '';
+        const searchParams = searchValue ? [`%${searchValue}%`] : [];
+
+        // Handle order by column and direction
+        const orderColumn = order?.[0]?.column || 0; // Default to 0 if no column is provided
+        const orderDir = order?.[0]?.dir || 'asc'; // Default to 'asc' if no direction is provided
+        const orderByColumn = ['reward_name', 'reward_id', 'reward_price', 'reward_start', 'reward_end', 'available_amount', 'is_active'][orderColumn] || 'reward_name';
+
+        const totalQuery = `SELECT COUNT(*) AS total FROM reward_list ${searchQuery}`;
+        const mainQuery = `
+            SELECT rl.*, 
+                   (rl.reward_amount - COALESCE(SUM(CASE WHEN rh.reward_status IN ('n', 'y') THEN 1 ELSE 0 END), 0)) AS available_amount,
+                   COALESCE(SUM(CASE WHEN rh.reward_status = 'c' THEN 1 ELSE 0 END), 0) AS canceled_amount,
+                   CASE 
+                       WHEN NOW() BETWEEN rl.reward_start AND rl.reward_end THEN 'Start'
+                       WHEN NOW() < rl.reward_start THEN 'Not Start'
+                       WHEN NOW() > rl.reward_end THEN 'End'
+                       ELSE NULL
+                   END AS reward_status_condition
+            FROM reward_list rl
+            LEFT JOIN reward_history rh ON rl.reward_id = rh.reward_id
+            ${searchQuery}
+            GROUP BY rl.reward_id
+            ORDER BY ${orderByColumn} ${orderDir} 
+            LIMIT ?, ?
+        `;
+
+        const params = [...searchParams, parseInt(start, 10), parseInt(length, 10)];
+
+        sql.query(totalQuery, searchParams, (err, totalResult) => {
             if (err) {
                 console.error(err);
                 response.status = false;
-                response.errMsg = 'Error fetching rewards';
+                response.errMsg = 'Error fetching total records';
                 response.statusCode = 500;
                 return reject(response);
             }
 
-            response.data = results; // Assign the filtered rewards directly
-            resolve(response);
+            const totalRecords = totalResult[0]?.total || 0;
+
+            sql.query(mainQuery, params, (err, results) => {
+                if (err) {
+                    console.error(err);
+                    response.status = false;
+                    response.errMsg = 'Error fetching reward data';
+                    response.statusCode = 500;
+                    return reject(response);
+                }
+
+                resolve({
+                    draw: parseInt(draw, 10),
+                    recordsTotal: totalRecords,
+                    recordsFiltered: totalRecords,
+                    data: results,
+                    statusCode: 200 // Ensure this is valid
+                });
+            });
         });
     });
 };
+
+
+
 
 module.exports = Auth;
