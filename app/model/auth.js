@@ -4,6 +4,8 @@ const lineConfig = require('../../configs/lineConfig');
 const client = new Client(lineConfig);
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { getProfile } = require('../../utils/getLinePofile');
+const Reward = require('./reward');
 
 var Auth = function () {
     this.created_at = new Date();
@@ -223,6 +225,86 @@ Auth.rewardList = function (input) {
         });
     });
 };
+
+Auth.rewardHistory = function (input) {
+    return new Promise((resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: [],
+            statusCode: 200
+        };
+
+        const { start, length, draw, search, order } = input;
+
+        const searchValue = search?.value || '';
+        const searchQuery = searchValue ? `WHERE rl.reward_name LIKE ?` : '';
+        const searchParams = searchValue ? [`%${searchValue}%`] : [];
+
+        // Handle order by column and direction
+        const orderColumn = order?.[0]?.column || 0; // Default to 0 if no column is provided
+        const orderDir = order?.[0]?.dir || 'asc'; // Default to 'asc' if no direction is provided
+        const orderByColumn = ['user_id', 'reward_id', 'invoice_num', 'reward_status', 'redeem_at'][orderColumn] || 'user_id';
+
+        const totalQuery = `SELECT COUNT(*) AS total FROM reward_history`;
+        const mainQuery = `
+        SELECT rh.*, rl.* 
+        FROM reward_history rh
+        INNER JOIN reward_list rl ON rh.reward_id = rl.reward_id
+        ${searchQuery}
+        ORDER BY ${orderByColumn} ${orderDir}
+        LIMIT ?, ?
+    `;
+        const params = [...searchParams, parseInt(start, 10), parseInt(length, 10)];
+
+        sql.query(totalQuery, searchParams, (err, totalResult) => {
+            if (err) {
+                console.error(err);
+                response.status = false;
+                response.errMsg = 'Error fetching total records';
+                response.statusCode = 500;
+                return reject(response);
+            }
+
+            const totalRecords = totalResult[0]?.total || 0;
+
+            sql.query(mainQuery, params, async (err, results) => {
+                if (err) {
+                    console.error(err);
+                    response.status = false;
+                    response.errMsg = 'Error fetching reward data';
+                    response.statusCode = 500;
+                    return reject(response);
+                }
+
+                try {
+                    // Enrich results with user profiles
+                    const enrichedResults = await Promise.all(
+                        results.map(async (row) => {
+                            const profile = await getProfile(row.user_id);
+                            return { ...row, profile };
+                        })
+                    );
+
+                    resolve({
+                        draw: parseInt(draw, 10),
+                        recordsTotal: totalRecords,
+                        recordsFiltered: totalRecords,
+                        data: enrichedResults,
+                        statusCode: 200
+                    });
+                } catch (profileErr) {
+                    console.error(profileErr);
+                    response.status = false;
+                    response.errMsg = 'Error fetching user profiles or reward data';
+                    response.statusCode = 500;
+                    return reject(response);
+                }
+            });
+        });
+    });
+};
+
 
 
 
