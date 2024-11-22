@@ -651,7 +651,7 @@ Transfer.earnRedeem = function (redeemInput) {
                     receiver_id: data[0].sender_id,
                     type: 'earn',
                     point_amount: data[0].point_amount,
-                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].comment}`,
+                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].reward_name}`,
                 };
 
                 let slipPayLoad = {
@@ -660,7 +660,7 @@ Transfer.earnRedeem = function (redeemInput) {
                     transferInfo: redeemInput,
                     invoiceNum: data[0].invoice_num,
                     point_amount: data[0].point_amount,
-                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].comment}`,
+                    comment: `ยกเลิกการแลกของรางวัล : ${data[0].reward_name}`,
                 };
 
                 const ePoint = "INSERT INTO point_transfer SET ?";
@@ -848,40 +848,53 @@ Transfer.getDataByInvoiceNum = function (invoice_num) {
             errMsg: '',
             data: [],
             statusCode: 200
-        }
+        };
 
-        const s = "SELECT * FROM point_transfer WHERE invoice_num = ? AND (type = 'earn' OR type = 'redeem' OR type = 'void')";
+        // Combined SQL query with condition for 'redeem' type
+        const s = `
+        SELECT pt.*, 
+                   rh.reward_id, 
+                   rl.reward_name
+        FROM point_transfer pt
+            LEFT JOIN reward_history rh 
+                ON pt.invoice_num = rh.invoice_num 
+                AND pt.type = 'redeem'
+            LEFT JOIN reward_list rl 
+                ON rh.reward_id = rl.reward_id 
+                AND pt.type = 'redeem'  -- Ensure the join happens only for 'redeem' type
+        WHERE pt.invoice_num = ? 
+        AND (pt.type = 'earn' OR pt.type = 'redeem' OR pt.type = 'void')
+    `;
 
         try {
             sql.query(
                 s,
-                [invoice_num], // ค่าที่รับเข้ามาเพื่อทำการค้นหา
-                //call back function
-                (err, results, fields) => { //results ที่ได้เป็นรูปแบบของ Array
+                [invoice_num], // Parameter for search
+                (err, results, fields) => {
                     if (err) {
-                        console.log(err)
-                        response.errMsg = err
-                        response.status = false
-                        response.statusCode = 500
-                        reject(response)
-                    }
-                    else {
+                        console.log(err);
+                        response.errMsg = err;
+                        response.status = false;
+                        response.statusCode = 500;
+                        reject(response);
+                    } else {
                         if (results.length > 0) {
-                            response["data"] /* รูปแบบที่ 2 */ = results; //ทำให้เป็๋น Obj // Return all matching records
+                            // Process results
+                            response.data = results;
+                        } else {
+                            response.status = false;
+                            response.errMsg = 'ไม่พบข้อมูลในระบบ';
                         }
-                        else {
-                            response.status = false
-                            response.errMsg = 'ไม่พบข้อมูลในระบบ'
-                        }
-                        resolve(response)
+                        resolve(response);
                     }
                 }
-            )
+            );
         } catch (err) {
-            reject(err)
+            reject(err);
         }
-    })
-}
+    });
+};
+
 
 Transfer.voidEarn = function (voidInput) {
     return new Promise(async (resolve, reject) => {
