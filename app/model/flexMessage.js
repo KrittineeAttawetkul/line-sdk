@@ -303,7 +303,7 @@ Flex.redeemSlip = function (Data) {
 
     const Date = timestamp()
 
-    const voidSilp = [
+    const redeemSlip = [
         {
             "type": "flex",
             "altText": "คุณได้แลกของรางวัล",
@@ -335,7 +335,7 @@ Flex.redeemSlip = function (Data) {
                         },
                         {
                             "type": "text",
-                            "text": `${Data.transferInfo.point_amount ? Data.transferInfo.point_amount : Data.point_amount} คะแนน`,
+                            "text": `${Data.transferInfo.point_amount} คะแนน`,
                             "weight": "bold",
                             "size": "xxl",
                             "margin": "xs",
@@ -398,7 +398,7 @@ Flex.redeemSlip = function (Data) {
         }
     ]
 
-    Data.client.pushMessage(Data.sender.userId, voidSilp)
+    Data.client.pushMessage(Data.sender.userId, redeemSlip)
 }
 
 Flex.senderSlip = function (Data) {

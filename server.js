@@ -26,6 +26,7 @@ app.use(fileUpload());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'))
+app.use('/images', express.static('uploads/reward_pictures'))
 app.use('/images', express.static('assets'));
 
 

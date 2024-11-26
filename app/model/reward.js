@@ -1,10 +1,13 @@
 const sql = require('../../configs/db');
+const fs = require('fs');
+const savePicture = require('../../utils/addons');
+const path = require('path')
 
 var Reward = function () {
     this.created_at = new Date()
 }
 
-Reward.addReward = function (rewardInput) {
+Reward.addReward = function (rewardInput, file) {
     return new Promise(async (resolve, reject) => {
         let response = {
             status: true,
@@ -15,17 +18,19 @@ Reward.addReward = function (rewardInput) {
 
         const reward_id = generateRewardId();
         rewardInput.reward_id = reward_id;
+        let pathFile = path.join(__dirname, '../../uploads/reward_pictures');
+        // rewardInput.reward_url = await savePicture(pathFile, file);
 
         try {
             // Date conversion for reward start and end
             if (rewardInput.reward_start) {
                 rewardInput.reward_start = await convertToMySQLDate(rewardInput.reward_start)
-                    .catch(err => reject(err)); // Catch and handle date conversion errors
+                    .catch(err => reject({ status: false, errMsg: `Date conversion error for reward_start: ${err.message}` }));
             }
 
             if (rewardInput.reward_end) {
                 rewardInput.reward_end = await convertToMySQLDate(rewardInput.reward_end)
-                    .catch(err => reject(err)); // Catch and handle date conversion errors
+                    .catch(err => reject({ status: false, errMsg: `Date conversion error for reward_end: ${err.message}` }));
             }
 
             const currentDate = new Date();
@@ -36,7 +41,8 @@ Reward.addReward = function (rewardInput) {
                 if (endDate < currentDate) {
                     return reject({
                         status: false,
-                        errMsg: 'reward_end cannot be before the current date and time'
+                        // errMsg: 'reward_end cannot be before the current date and time'
+                        errMsg: 'วันที่หมดอายุไม่สามารถเป็นก่อนวันเริ่มใช้งานและเวลาปัจจุบันได้'
                     });
                 }
             }
@@ -49,12 +55,14 @@ Reward.addReward = function (rewardInput) {
                 if (startDate > endDate) {
                     return reject({
                         status: false,
-                        errMsg: 'reward_start cannot be after reward_end'
+                        // errMsg: 'reward_start cannot be after reward_end'
+                        errMsg: 'วันเริ่มใช้งานไม่สามารถอยู่หลังวันที่หมดอายุได้'
                     });
                 } else if (startDate.getTime() === endDate.getTime()) {
                     return reject({
                         status: false,
-                        errMsg: 'reward_start and reward_end cannot be at the same time'
+                        // errMsg: 'reward_start and reward_end cannot be at the same time'
+                        errMsg: 'วันเริ่มใช้งานและวันที่หมดอายุไม่สามารถเป็นเวลาเดียวกันได้'
                     });
                 }
             }
@@ -63,7 +71,8 @@ Reward.addReward = function (rewardInput) {
             if (!rewardInput.reward_amount || rewardInput.reward_amount <= 0) {
                 return reject({
                     status: false,
-                    errMsg: 'reward_amount must be greater than 0'
+                    // errMsg: 'reward_amount must be greater than 0'
+                    errMsg: 'จำนวนรางวัลต้องมากกว่า 0'
                 });
             }
 
@@ -71,9 +80,12 @@ Reward.addReward = function (rewardInput) {
             if (rewardInput.reward_price < 0) {
                 return reject({
                     status: false,
-                    errMsg: 'reward_price cannot be lower than 0'
+                    // errMsg: 'reward_price cannot be lower than 0'
+                    errMsg: 'ราคารางวัลไม่สามารถต่ำกว่า 0 ได้'
                 });
             }
+
+            rewardInput.reward_url = await savePicture(pathFile, file);
 
             const r = 'INSERT INTO reward_list SET ?';
 
@@ -81,28 +93,31 @@ Reward.addReward = function (rewardInput) {
                 if (err) {
                     return reject({
                         status: false,
-                        errMsg: err.message
+                        errMsg: `SQL error: ${err.message}`
                     });
                 }
+
                 if (results.affectedRows > 0) {
                     response.status = true;
-                    response.data = 'Success save record';
-                    resolve(response);
+                    response.data = 'Successfully saved record';
+                    return resolve(response);
                 } else {
-                    response.status = false;
-                    response.data = 'Failed to save record';
-                    resolve(response);
+                    return reject({
+                        status: false,
+                        errMsg: 'Failed to save record'
+                    });
                 }
             });
         } catch (err) {
-            // Catch any other unexpected errors
-            reject({
+            // Catch any unexpected errors
+            return reject({
                 status: false,
                 errMsg: 'An unexpected error occurred: ' + err.message
             });
         }
     });
 };
+
 
 
 Reward.rewardCarousel = function (userId, client) {
@@ -492,6 +507,112 @@ Reward.getRewardHistoryByUserId = function (user_id, pageNo, itemPerPage) {
         });
     });
 };
+
+Reward.updateForm = function (rewardInput, file) {
+    return new Promise(async (resolve, reject) => {
+        let response = {
+            status: true,
+            errMsg: '',
+            data: {},
+            statusCode: 200
+        };
+
+        let pathFile = path.join(__dirname, '../../uploads/reward_pictures');
+
+        // If a file is uploaded, save the picture and update the reward_url
+        if (file) {
+            rewardInput.reward_url = await savePicture(pathFile, file);
+        }
+
+        if (rewardInput.reward_start) {
+            rewardInput.reward_start = await convertToMySQLDate(rewardInput.reward_start);
+        }
+        if (rewardInput.reward_end) {
+            rewardInput.reward_end = await convertToMySQLDate(rewardInput.reward_end);
+        }
+
+        const startDate = new Date(rewardInput.reward_start);
+        const endDate = new Date(rewardInput.reward_end);
+
+        // Validate dates
+        if (startDate >= endDate) {
+            response = {
+                status: false,
+                // errMsg: 'Invalid reward dates provided.',
+                errMsg: 'วันที่รางวัลไม่ถูกต้อง',
+                statusCode: 200 // Bad Request
+            };
+            return reject(response);
+        }
+
+        // Validate amounts
+        if (!rewardInput.reward_amount || rewardInput.reward_amount <= 0) {
+            response = {
+                status: false,
+                // errMsg: 'reward_amount must be greater than 0',
+                errMsg: 'จำนวนรางวัลต้องมากกว่า 0',
+                statusCode: 200 // Bad Request
+            };
+            return reject(response);
+        }
+
+        if (rewardInput.reward_price === undefined || rewardInput.reward_price < 0) {
+            response = {
+                status: false,
+                // errMsg: 'reward_price cannot be lower than 0',
+                errMsg: 'ราคารางวัลไม่สามารถต่ำกว่า 0 ได้',
+                statusCode: 200 // Bad Request
+            };
+            return reject(response);
+        }
+
+        // Prepare the SQL query to update the reward list in the database
+        const updateQuery = `
+            UPDATE reward_list 
+            SET ?
+            WHERE reward_id = ?
+        `;
+
+        // Execute the SQL query
+        try {
+            sql.query(updateQuery, [rewardInput, rewardInput.reward_id], (err, results) => {
+                if (err) {
+                    console.error(err);
+                    response.status = false;
+                    response.errMsg = 'Error updating reward';
+                    response.statusCode = 500;
+                    return reject(response);
+                }
+
+                // Check if the update was successful
+                if (results.changedRows === 0) {
+                    response.status = true;
+                    response.data = 'ไม่มีการเปลี่ยนแปลง';
+                    // response.data = 'No changes made because the provided values are identical to the existing values';
+                    resolve(response);
+                }
+                else if (results.affectedRows > 0) {
+                    response.status = true;
+                    response.data = 'Reward updated successfully';
+                    resolve(response);
+                }
+                else {
+                    response.status = false;
+                    response.errMsg = 'No reward found with the given ID';
+                    response.statusCode = 404;
+                    resolve(response);
+                }
+            });
+        } catch (err) {
+            // Handle any errors that occur during the database query
+            response.status = false;
+            response.errMsg = err.message;
+            response.statusCode = 500;
+            reject(response);
+        }
+    });
+};
+
 
 function generateRewardId() {
     const date = new Date();

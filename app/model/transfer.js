@@ -528,7 +528,7 @@ Transfer.Redeem = function (RedeemInput) {
                         // Check if point_amount to be transferred is less than or equal to the balance
                         if (balanceData.balance >= RedeemInput.point_amount) {
 
-                            if (RedeemInput.point_amount > 0) {
+                            if (RedeemInput.point_amount >= 0) {
 
                                 const rPoint = `INSERT INTO point_transfer SET ?`;
 
@@ -578,9 +578,9 @@ Transfer.Redeem = function (RedeemInput) {
                                     }
                                 });
                             } else {
-                                console.log('point amount = 0');
+                                console.log('point amount < 0');
                                 response.status = false;
-                                response.errMsg = 'Point amount cannot be 0';
+                                response.errMsg = 'Point amount cannot be lower than 0';
                                 response.statusCode = 200;
                                 reject(response);
                             }
@@ -823,7 +823,7 @@ Reward.updateReward = function (rewardInput) {
                 response = {
                     status: false,
                     errMsg: 'No changes made because the provided values are identical to the existing values',
-                    statusCode: 204 // No Content
+                    statusCode: 200 // No Content
                 };
                 return reject(response); // reject here
             } else {

@@ -50,7 +50,9 @@ module.exports = function (app) {
   app.route('/api/rewardlist').get(Auth.verifyToken, Auth.rewardList);
   app.route('/api/rewardhistory').get(Auth.verifyToken, Auth.rewardHistory);
   app.route("/api/updatereward").post(Auth.verifyToken, Reward.updateReward);
+  app.route("/api/updateform").post(Auth.verifyToken, Reward.updateForm);
   app.route("/api/addreward").post(Auth.verifyToken, Reward.addReward);
+  app.route("/api/editreward").post(Auth.verifyToken, Auth.getRewardByReward_id);
 
 
 

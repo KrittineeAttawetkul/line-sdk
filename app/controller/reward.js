@@ -1,7 +1,9 @@
 const Reward = require('../model/reward');
 
 exports.addReward = async function (req, res) {
-    await Reward.addReward(req.body)
+    // console.log('Body: ', req.body);
+    // console.log('File: ', req.files);
+    await Reward.addReward(req.body, req.files.reward_img)
         .then((response) => {
             res.status(response.statusCode).send(response)
         }).catch((err) => {
@@ -27,6 +29,22 @@ exports.updateReward = async function (req, res) {
             res.status(200).send(err)
         });
 }
+
+exports.updateForm = async function (req, res) {
+    // Check if a file is uploaded
+    const file = req.files ? req.files.reward_img : null;
+
+    try {
+        const response = await Reward.updateForm(req.body, file);
+        res.status(response.statusCode).send(response);
+    } catch (err) {
+        // Log the error and send the appropriate response
+        console.error(err);
+        res.status(err.statusCode || 500).send(err); // Default to 500 if no status code in the error
+    }
+};
+
+
 
 exports.allReward = async function (req, res) {
     const { pageNo, itemPerPage } = req.body
