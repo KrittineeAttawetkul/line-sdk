@@ -172,7 +172,7 @@ Reward.rewardCarousel = function (userId, client) {
                             "size": "full",
                             "aspectRatio": "20:13",
                             "aspectMode": "cover",
-                            "url": `${product.reward_url}`
+                            "url": `${process.env.SERVER_BASE_API}/${product.reward_url}`
                         },
                         "body": {
                             "type": "box",
